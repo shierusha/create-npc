@@ -29,14 +29,14 @@
       .eq('player_id', playerId)
       .single());
   } catch (e) {
-    alert('查詢玩家權限失敗，請重新登入');
+    alert('你誰啊? 滾');
     localStorage.clear();
     window.location.href = 'https://shierusha.github.io/login/login';
     return;
   }
 
   if (error || !data) {
-    alert('查無此玩家，請重新登入');
+    alert('你誰啊? 滾');
     localStorage.clear();
     window.location.href = 'https://shierusha.github.io/login/login';
     return;
