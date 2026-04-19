@@ -1235,39 +1235,33 @@
     block.appendChild(section.wrapper);
   }
 
-  function isMovementMatched(move, skill) {
-    if (!move || !skill) return false;
+ function isMovementMatched(move, skill) {
+  if (!move || !skill) return false;
 
-    const mustShowMoveId = '80c6f054-b655-4ff7-8660-009a29a41f8a';
+  const selectedTarget = skill.target_faction;
+  const moveTarget = move.target_faction === undefined ? null : move.target_faction;
 
-    if (move.move_id === mustShowMoveId) {
-      return true;
-    }
-
-    const selectedTarget = skill.target_faction;
-    const moveTarget = move.target_faction === undefined ? null : move.target_faction;
-
-    if (selectedTarget === null) {
-      if (moveTarget === 'self') return false;
-    } else if (selectedTarget === '') {
-      return false;
-    } else if (moveTarget !== selectedTarget) {
-      return false;
-    }
-
-    if (Number(move.max_targets || 0) !== Number(skill.max_targets || 0)) {
-      return false;
-    }
-
-    const selectedRange = skill.range === undefined ? '' : skill.range;
-    const moveRange = move.range === undefined ? '' : move.range;
-
-    if (selectedRange && moveRange !== selectedRange) {
-      return false;
-    }
-
-    return true;
+  if (selectedTarget === null) {
+    if (moveTarget !== 'self') return false;
+  } else if (selectedTarget === '') {
+    return false;
+  } else if (moveTarget !== selectedTarget) {
+    return false;
   }
+
+  if (Number(move.max_targets || 0) !== Number(skill.max_targets || 0)) {
+    return false;
+  }
+
+  const selectedRange = skill.range === undefined || skill.range === null ? '' : skill.range;
+  const moveRange = move.range === undefined || move.range === null ? '' : move.range;
+
+  if (selectedRange && moveRange !== selectedRange) {
+    return false;
+  }
+
+  return true;
+}
 
   function renderSkillDebuffBlock(idx, block, skill) {
     const section = createElement('div', 'npc-debuff-section');
