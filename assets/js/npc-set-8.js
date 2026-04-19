@@ -337,6 +337,65 @@
     skill.linked_movement_id = null;
   }
 
+  function getAllowedNpcTargetOptions() {
+    const targetMap = {
+      tank: ['self', 'enemy', 'ally'],
+      attack: ['enemy', 'ally'],
+      jammer: ['enemy', 'ally'],
+      healer: ['self', 'ally', 'team'],
+      buffer: ['self', 'ally', 'team']
+    };
+
+    const labelMap = {
+      self: '自身',
+      enemy: '敵方',
+      ally: '隊友',
+      team: '我方'
+    };
+
+    const occ = Array.isArray(formData.occupation_type) ? formData.occupation_type : [];
+    const allowedSet = new Set();
+
+    if (occ.length === 0) {
+      ['self', 'enemy', 'ally', 'team'].forEach(function (item) {
+        allowedSet.add(item);
+      });
+    } else {
+      occ.forEach(function (job) {
+        if (targetMap[job]) {
+          targetMap[job].forEach(function (target) {
+            allowedSet.add(target);
+          });
+        }
+      });
+    }
+
+    const options = [];
+
+    ['self', 'enemy', 'ally', 'team'].forEach(function (key) {
+      if (allowedSet.has(key)) {
+        options.push({
+          value: key,
+          label: labelMap[key]
+        });
+      }
+    });
+
+    const canUseNeutralTarget =
+      allowedSet.has('enemy') ||
+      allowedSet.has('ally') ||
+      allowedSet.has('team');
+
+    if (canUseNeutralTarget) {
+      options.push({
+        value: NULL_SELECT_VALUE,
+        label: '敵我不分'
+      });
+    }
+
+    return options;
+  }
+
   async function initAllSkillListsThenRender() {
     if (typeof window.initAllNpcSkillLists === 'function') {
       await window.initAllNpcSkillLists();
@@ -659,23 +718,25 @@
     placeholder.disabled = true;
     targetSelect.appendChild(placeholder);
 
-    [
-      { value: 'self', label: '自身' },
-      { value: 'enemy', label: '敵方' },
-      { value: 'ally', label: '隊友' },
-      { value: 'team', label: '我方' },
-      { value: NULL_SELECT_VALUE, label: '敵我不分' }
-    ].forEach(function (item) {
+    const targetOptions = getAllowedNpcTargetOptions();
+
+    targetOptions.forEach(function (item) {
       const option = document.createElement('option');
       option.value = item.value;
       option.textContent = item.label;
       targetSelect.appendChild(option);
     });
 
-    targetSelect.value = nullableToSelectValue(skill.target_faction);
+    const currentTargetValue = nullableToSelectValue(skill.target_faction);
+    const currentTargetAllowed = targetOptions.some(function (item) {
+      return item.value === currentTargetValue;
+    });
 
-    if (skill.target_faction === '') {
+    if (skill.target_faction === '' || !currentTargetAllowed) {
       targetSelect.value = '';
+      formData.skills[idx].target_faction = '';
+    } else {
+      targetSelect.value = currentTargetValue;
     }
 
     targetSelect.addEventListener('change', function () {
@@ -1055,21 +1116,30 @@
   }
 
   function renderMovementSkillsBlock(idx, block, skill) {
-    if (skill.is_passive) return;
-    if (skill.target_select_type !== 'people') return;
-    if (Number(skill.max_targets || 0) !== 1) return;
+    if (skill.is_passive) {
+      formData.skills[idx].use_movement = false;
+      formData.skills[idx].move_ids = '';
+      formData.skills[idx].linked_movement_id = null;
+      return;
+    }
+
+    if (skill.target_select_type !== 'people') {
+      formData.skills[idx].use_movement = false;
+      formData.skills[idx].move_ids = '';
+      formData.skills[idx].linked_movement_id = null;
+      return;
+    }
+
+    if (Number(skill.max_targets || 0) !== 1) {
+      formData.skills[idx].use_movement = false;
+      formData.skills[idx].move_ids = '';
+      formData.skills[idx].linked_movement_id = null;
+      return;
+    }
 
     const list = Array.isArray(window.movementSkillsList) ? window.movementSkillsList : [];
 
-    const section = createCollapsibleSection(
-      `movement-${idx}`,
-      '移動技能',
-      skill.use_movement ? '已啟用' : ''
-    );
-
     if (!list.length) {
-      section.body.appendChild(createElement('div', 'npc-effect-empty', '沒有可用的移動技能'));
-      block.appendChild(section.wrapper);
       return;
     }
 
@@ -1077,11 +1147,35 @@
       return isMovementMatched(move, skill);
     });
 
+    if (!matchedList.length) {
+      formData.skills[idx].use_movement = false;
+      formData.skills[idx].move_ids = '';
+      formData.skills[idx].linked_movement_id = null;
+      return;
+    }
+
+    const currentMoveId = skill.move_ids || skill.linked_movement_id || '';
+    const currentMoveStillMatched = matchedList.some(function (move) {
+      return move.move_id === currentMoveId;
+    });
+
+    if (skill.use_movement && !currentMoveStillMatched) {
+      formData.skills[idx].use_movement = false;
+      formData.skills[idx].move_ids = '';
+      formData.skills[idx].linked_movement_id = null;
+    }
+
+    const section = createCollapsibleSection(
+      `movement-${idx}`,
+      '移動技能',
+      formData.skills[idx].use_movement ? '已啟用' : ''
+    );
+
     const enableLabel = createElement('label', 'npc-effect-item');
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.checked = !!skill.use_movement;
+    checkbox.checked = !!formData.skills[idx].use_movement;
 
     checkbox.addEventListener('change', function () {
       formData.skills[idx].use_movement = this.checked;
@@ -1089,10 +1183,8 @@
       if (this.checked) {
         const firstMove = matchedList[0];
 
-        if (firstMove) {
-          formData.skills[idx].move_ids = firstMove.move_id;
-          formData.skills[idx].linked_movement_id = firstMove.move_id;
-        }
+        formData.skills[idx].move_ids = firstMove.move_id;
+        formData.skills[idx].linked_movement_id = firstMove.move_id;
       } else {
         formData.skills[idx].move_ids = '';
         formData.skills[idx].linked_movement_id = null;
@@ -1105,56 +1197,61 @@
     enableLabel.appendChild(document.createTextNode('啟用移動技能'));
     section.body.appendChild(enableLabel);
 
-    if (skill.use_movement) {
-      if (!matchedList.length) {
-        const none = createElement('div', 'npc-effect-empty', '沒有符合條件的移動技能');
-        section.body.appendChild(none);
-      } else {
-        matchedList.forEach(function (move) {
-          const row = createElement('label', 'npc-effect-item');
+    if (formData.skills[idx].use_movement) {
+      matchedList.forEach(function (move) {
+        const row = createElement('label', 'npc-effect-item');
 
-          const radio = document.createElement('input');
-          radio.type = 'radio';
-          radio.name = `npc-move-radio-${idx}`;
-          radio.value = move.move_id;
-          radio.checked = skill.move_ids === move.move_id || skill.linked_movement_id === move.move_id;
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = `npc-move-radio-${idx}`;
+        radio.value = move.move_id;
+        radio.checked =
+          formData.skills[idx].move_ids === move.move_id ||
+          formData.skills[idx].linked_movement_id === move.move_id;
 
-          radio.addEventListener('change', function () {
-            formData.skills[idx].move_ids = this.value;
-            formData.skills[idx].linked_movement_id = this.value;
-            updateSkillPreview();
-          });
-
-          const name = createElement('span', 'npc-effect-name', move.move_name || '[未命名移動]');
-
-          const detail = createElement('a', 'npc-effect-detail', '詳細');
-          detail.href = '#';
-          detail.addEventListener('click', function (event) {
-            event.preventDefault();
-            showModal(move.move_name || '移動技能', move.description || '');
-          });
-
-          row.appendChild(radio);
-          row.appendChild(name);
-          row.appendChild(detail);
-
-          section.body.appendChild(row);
+        radio.addEventListener('change', function () {
+          formData.skills[idx].move_ids = this.value;
+          formData.skills[idx].linked_movement_id = this.value;
+          updateSkillPreview();
         });
-      }
+
+        const name = createElement('span', 'npc-effect-name', move.move_name || '[未命名移動]');
+
+        const detail = createElement('a', 'npc-effect-detail', '詳細');
+        detail.href = '#';
+        detail.addEventListener('click', function (event) {
+          event.preventDefault();
+          showModal(move.move_name || '移動技能', move.description || '');
+        });
+
+        row.appendChild(radio);
+        row.appendChild(name);
+        row.appendChild(detail);
+
+        section.body.appendChild(row);
+      });
     }
 
     block.appendChild(section.wrapper);
   }
 
   function isMovementMatched(move, skill) {
-    if (!move) return false;
+    if (!move || !skill) return false;
+
+    const mustShowMoveId = '80c6f054-b655-4ff7-8660-009a29a41f8a';
+
+    if (move.move_id === mustShowMoveId) {
+      return true;
+    }
 
     const selectedTarget = skill.target_faction;
     const moveTarget = move.target_faction === undefined ? null : move.target_faction;
 
     if (selectedTarget === null) {
       if (moveTarget === 'self') return false;
-    } else if (selectedTarget !== '' && moveTarget !== selectedTarget) {
+    } else if (selectedTarget === '') {
+      return false;
+    } else if (moveTarget !== selectedTarget) {
       return false;
     }
 
@@ -1162,10 +1259,11 @@
       return false;
     }
 
-    if (skill.range !== null && skill.range !== undefined && skill.range !== '') {
-      if (move.range && move.range !== skill.range) {
-        return false;
-      }
+    const selectedRange = skill.range === undefined ? '' : skill.range;
+    const moveRange = move.range === undefined ? '' : move.range;
+
+    if (selectedRange && moveRange !== selectedRange) {
+      return false;
     }
 
     return true;
