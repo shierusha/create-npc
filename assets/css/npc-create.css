@@ -1,1 +1,265 @@
 
+#npc-change-bg-btn {
+  top: 20px;
+  line-height: 1.25;
+  font-size: 0.95rem;
+  color: inherit;
+  word-break: keep-all;
+  text-align: center;
+}
+
+#npc-change-bg-btn:hover {
+  filter: brightness(0.96);
+}
+
+.npc-skill-note {
+  margin: 0.8rem 0 1.2rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(73, 80, 121, 0.28);
+  border-radius: 0.8rem;
+  color: #495079;
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.npc-null-preview {
+  color: #777;
+  font-style: italic;
+}
+
+.npc-skill-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 0.55rem 0;
+}
+
+.npc-skill-row > label {
+  min-width: 8em;
+  margin: 0;
+}
+
+.npc-skill-row > input,
+.npc-skill-row > select,
+.npc-skill-row > textarea {
+  flex: 1;
+}
+
+.npc-short-input {
+  max-width: 8rem;
+}
+
+.npc-readonly-input {
+  background-color: rgba(230, 230, 235, 0.7);
+  color: #777;
+  cursor: not-allowed;
+}
+
+.npc-effect-section {
+  margin-top: 1rem;
+  border: 1px solid rgba(73, 80, 121, 0.26);
+  border-radius: 0.8rem;
+  overflow: hidden;
+}
+
+.npc-effect-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.72rem 0.9rem;
+  cursor: pointer;
+  font-weight: 700;
+  color: #495079;
+  user-select: none;
+}
+
+.npc-effect-toggle-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.npc-effect-arrow {
+  display: inline-block;
+  transform: rotate(0deg);
+  transition: transform 0.16s ease;
+}
+
+.npc-effect-section.collapsed .npc-effect-arrow {
+  transform: rotate(-90deg);
+}
+
+.npc-effect-body {
+  padding: 0.7rem 0.9rem 0.9rem;
+}
+
+.npc-effect-section.collapsed .npc-effect-body {
+  display: none;
+}
+
+.npc-effect-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.25rem 0;
+  line-height: 1.45;
+}
+
+.npc-effect-item input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.npc-effect-name {
+  flex: 0 1 auto;
+}
+
+.npc-effect-detail {
+  font-size: 0.75rem;
+  color: #2477c8;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.npc-effect-empty {
+  padding: 0.35rem 0;
+  color: #888;
+  font-size: 0.92rem;
+}
+
+.npc-skill-block {
+  margin: 1.3rem 0;
+  padding: 1rem;
+  border: 1px solid rgba(73, 80, 121, 0.22);
+  border-radius: 1rem;
+}
+
+.npc-skill-title {
+  margin-bottom: 0.8rem;
+  font-weight: 700;
+  color: #495079;
+  font-size: 1.08rem;
+}
+
+.npc-passive-block {
+  margin: 0.8rem 0;
+  padding: 0.75rem;
+  border-radius: 0.7rem;
+  border: 1px dashed rgba(73, 80, 121, 0.32);
+}
+
+.npc-passive-options {
+  margin-top: 0.6rem;
+}
+
+.npc-passive-option {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.28rem 0;
+}
+
+.npc-passive-condition {
+  margin-top: 0.65rem;
+}
+
+.npc-passive-condition textarea {
+  width: 100%;
+  min-height: 4.5rem;
+}
+
+.npc-cd-display {
+  margin: 0.45rem 0 0.75rem;
+  font-weight: 700;
+  color: #495079;
+}
+
+.npc-debuff-section {
+  margin-top: 1rem;
+  padding: 0.8rem;
+  border-radius: 0.8rem;
+  border: 1px solid rgba(73, 80, 121, 0.22);
+}
+
+.npc-debuff-chosen {
+  margin-bottom: 0.8rem;
+}
+
+.npc-debuff-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin: 0.35rem 0;
+}
+
+.npc-debuff-left {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.npc-debuff-right {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.npc-debuff-add-btn,
+.npc-debuff-delete-btn,
+.npc-small-btn {
+  width: auto;
+  margin: 0;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.9rem;
+}
+
+.npc-danger-btn {
+  background-color: #c33;
+  color: #fff;
+}
+
+.npc-extra-skill-delete {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.npc-hidden {
+  display: none !important;
+}
+
+.npc-inline-help {
+  color: #777;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.npc-field-disabled {
+  opacity: 0.62;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  #npc-change-bg-btn {
+    left: 6px;
+    width: 38px;
+    padding: 8px;
+    font-size: 0.86rem;
+  }
+
+  .npc-skill-row {
+    display: block;
+  }
+
+  .npc-skill-row > label {
+    display: block;
+    min-width: 0;
+    margin-bottom: 0.25rem;
+  }
+
+  .npc-short-input {
+    max-width: none;
+  }
+}
