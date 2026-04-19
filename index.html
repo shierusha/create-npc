@@ -1,1 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>謝爾夏 NPC 建立/修改表</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://shierusha.github.io/create-student/stidcard/sql-id/ap-stu-card.css">
+  <link rel="stylesheet" href="https://shierusha.github.io/create-student/charlist.css">
+  <link rel="stylesheet" href="assets/css/npc-create.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div class="npc-bg-switcher">
+    <button type="button" id="npc-bg-prev">上一張背景</button>
+    <select id="npc-bg-select">
+      <option value="https://shierusha.github.io/school-battle/teachers/img/8.webp">預設背景</option>
+    </select>
+    <button type="button" id="npc-bg-next">下一張背景</button>
+    <input type="url" id="background_image_url" placeholder="或直接輸入背景圖片網址">
+    <button type="button" id="npc-bg-apply">套用背景</button>
+  </div>
+
+  <div class="flip-card row-card" id="flipCard">
+    <div class="flip-card-front">
+      <div class="container-16-9">
+        <img class="bg-img" src="https://shierusha.github.io/school-battle/teachers/img/8.webp" alt="background">
+
+        <div class="student-id" data-key="other_npcs.npc_category"></div>
+
+        <div class="imgarea">
+          <img class="char-img front-img" data-key="othernpc_images.front_url" src="#" alt="NPC 正面立繪">
+        </div>
+
+        <div class="bigname-box">
+          <div class="name-box bigname" data-key="other_npcs.name"></div>
+        </div>
+
+        <div class="littlename-box">
+          <div class="name-box littlename" data-key="other_npcs.nickname"></div>
+        </div>
+
+        <div class="row">
+          <div class="row-1" style="left: 0;">
+            <div class="info-box" style="height:7%;">
+              <span class="info-label">陣營</span>
+              <span class="info-value" data-key="other_npcs.alignment"></span>
+            </div>
+
+            <div class="info-box" style="height:7%;">
+              <span class="info-label">種族</span>
+              <span class="info-value" data-key="other_npcs.race"></span>
+            </div>
+
+            <div class="info-row" style="gap:2%;height:7%;">
+              <div class="info-box" style="width:49%;">
+                <span class="info-label">年齡</span>
+                <span class="info-value" data-key="other_npcs.age"></span>
+              </div>
+              <div class="info-box" style="width:49%;">
+                <span class="info-label">性別</span>
+                <span class="info-value" data-key="other_npcs.gender"></span>
+              </div>
+            </div>
+
+            <div class="info-box" style="height:15%;">
+              <span class="info-label">個性</span>
+              <span class="info-value" data-key="other_npcs.personality" style="margin-top: 0.35em;"></span>
+              <button class="show-more-btn" style="display:none;">...MORE</button>
+            </div>
+
+            <div class="info-box" style="height:7%;">
+              <span class="info-label">喜歡</span>
+              <span class="info-value" data-key="other_npcs.likes"></span>
+              <button class="show-more-btn" style="display:none;">...MORE</button>
+            </div>
+
+            <div class="info-box" style="height:7%;">
+              <span class="info-label">討厭</span>
+              <span class="info-value" data-key="other_npcs.hate"></span>
+              <button class="show-more-btn" style="display:none;">...MORE</button>
+            </div>
+
+            <div class="info-box" style="height:7%;border-radius:5px 5px 0 0;">
+              <span class="info-label">角色設定</span>
+              <span style="color: #495079; font-weight: 700; letter-spacing: 0.05em; padding-left: 0.3em; align-self: center;">裏設定</span>
+            </div>
+
+            <div class="info-box" style="height:25%;margin-top:-2.8%;border-radius:0 0 5px 5px;">
+              <span class="info-value" data-key="othernpc_notes.content" style="margin-top: 0.35em;"></span>
+              <button class="show-more-btn" data-title="角色設定/裏設定">...MORE</button>
+            </div>
+          </div>
+
+          <div class="row-1" style="right:0;">
+            <div class="info-row" style="gap:2%; height:7%;">
+              <div class="info-box" style="width:49%;">
+                <span class="info-label">身高</span>
+                <span class="info-value" data-key="other_npcs.height"></span>
+              </div>
+              <div class="info-box" style="width:49%;">
+                <span class="info-label">體重</span>
+                <span class="info-value" data-key="other_npcs.weight"></span>
+              </div>
+            </div>
+
+            <div class="info-box" style="height:7%;border-radius:5px 5px 0 0;">
+              <span class="info-label">背景故事</span>
+              <span style="color: #495079; font-weight: 700; letter-spacing: 0.05em; padding-left: 0.3em; align-self: center;">備註</span>
+            </div>
+
+            <div class="info-box" style="height:60%;margin-top:-2.8%;border-radius:0 0 5px 0;">
+              <span class="info-value" data-key="other_npcs.background" style="margin-top: 0.35em;"></span>
+              <button class="show-more-btn" data-title="背景故事/備註">...MORE</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flip-card-back">
+      <div class="container-16-9">
+        <img class="bg-img" src="https://shierusha.github.io/school-battle/teachers/img/8.webp" alt="background">
+
+        <div class="skill-diamond"
+             data-key="othernpc_skills.extra_skills"
+             title="顯示額外技能"
+             tabindex="0"
+             style="cursor:pointer"
+             value=""></div>
+
+        <div class="student-id" data-key="other_npcs.npc_category"></div>
+
+        <div class="imgarea">
+          <img class="char-img back-img" data-key="othernpc_images.back_url" src="#" alt="NPC 背面立繪">
+        </div>
+
+        <div class="bigname-box">
+          <div class="name-box bigname" data-key="other_npcs.name"></div>
+        </div>
+
+        <div class="littlename-box">
+          <div class="name-box littlename" data-key="other_npcs.nickname"></div>
+        </div>
+
+        <div class="row">
+          <div class="row-1" style="width: 100%;">
+            <div class="info-box" style="height:7%;">
+              <span class="info-label">職業</span>
+              <span class="info-value" data-key="other_npcs.occupation_type"></span>
+            </div>
+
+            <div class="info-row" style="height:7%;">
+              <div class="info-box" style="width:49.5%;">
+                <span class="info-label">屬性</span>
+                <span class="info-value" data-key="other_npcs.element"></span>
+              </div>
+              <div class="info-box" style="width:49.5%;">
+                <span class="info-label">屬性弱點</span>
+                <span class="info-value" data-key="element_weakness.element"></span>
+              </div>
+            </div>
+
+            <div class="info-row" style="height:7%;">
+              <div class="info-box" style="width:49.5%;">
+                <span class="info-label">定位</span>
+                <span class="info-value" data-key="other_npcs.preferred_role"></span>
+              </div>
+              <div class="info-box" style="width:49.5%;">
+                <span class="info-label">起始站位</span>
+                <span class="info-value" data-key="other_npcs.starting_position"></span>
+              </div>
+            </div>
+
+            <div class="info-row" style="gap:0.3%; height:7%;">
+              <div class="info-box" style="width:43.4%; border-radius: 5px 5px 0 0;">
+                <span class="info-label">技能</span>
+                <span class="info-value" data-key="othernpc_skills.1.skill_name"></span>
+              </div>
+              <div class="info-box" style="width:14%; border-radius: 5px 5px 0 0;">
+                <span class="info-label">CD</span>
+                <span class="info-value" data-key="othernpc_skills.1.cd"></span>
+              </div>
+              <div class="info-box" style="width:42%; border-radius: 5px 5px 0 0;">
+                <span class="info-label">效果</span>
+                <span class="info-value" data-key="othernpc_skills.1.max_targets"></span>
+                <span class="info-value" data-key="othernpc_skills.1.range"></span>
+              </div>
+            </div>
+
+            <div class="info-row" style="gap:0.3%;height:27%; margin-top:-1.38%;">
+              <div class="info-box" style="width:57.7%;border-radius:0 0 0 5px;">
+                <span class="info-label">技能<br>描述</span>
+                <span class="info-value" data-key="othernpc_skills.1.description"></span>
+                <button class="show-more-btn" data-title="技能描述">...MORE</button>
+              </div>
+              <div class="info-box" style="width:42%;border-radius:0 0 5px 0;">
+                <span class="info-value" data-key="othernpc_skills.1.effectsAndDebuffs"></span>
+                <button class="show-more-btn" style="display:none;">...MORE</button>
+              </div>
+            </div>
+
+            <div class="info-row" style="gap:0.3%; height:7%;">
+              <div class="info-box" style="width:43.4%; border-radius: 5px 5px 0 0;">
+                <span class="info-label">技能</span>
+                <span class="info-value" data-key="othernpc_skills.2.skill_name"></span>
+              </div>
+              <div class="info-box" style="width:14%; border-radius: 5px 5px 0 0;">
+                <span class="info-label">CD</span>
+                <span class="info-value" data-key="othernpc_skills.2.cd"></span>
+              </div>
+              <div class="info-box" style="width:42%; border-radius: 5px 5px 0 0;">
+                <span class="info-label">效果</span>
+                <span class="info-value" data-key="othernpc_skills.2.max_targets"></span>
+                <span class="info-value" data-key="othernpc_skills.2.range"></span>
+              </div>
+            </div>
+
+            <div class="info-row" style="gap:0.3%;height:27%; margin-top:-1.38%;">
+              <div class="info-box" style="width:57.7%;border-radius:0 0 0 5px;">
+                <span class="info-label">技能<br>描述</span>
+                <span class="info-value" data-key="othernpc_skills.2.description"></span>
+                <button class="show-more-btn" data-title="技能描述">...MORE</button>
+              </div>
+              <div class="info-box" style="width:42%;border-radius:0 0 5px 0;">
+                <div class="info-value-group">
+                  <span class="info-value" data-key="othernpc_skills.2.effectsAndDebuffs"></span>
+                </div>
+                <button class="show-more-btn" style="display:none;">...MORE</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="info-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header" id="info-modal-title">標題</div>
+      <div class="modal-body" id="info-modal-body"></div>
+    </div>
+  </div>
+
+  <div class="center">
+    <h2>謝爾夏 NPC 建立系統</h2>
+
+    <div class="steps">
+      <div class="step" id="step-1">1</div>
+      <div class="step" id="step-2">2</div>
+      <div class="step" id="step-3">3</div>
+      <div class="step" id="step-4">4</div>
+      <div class="step" id="step-5">5</div>
+      <div class="step" id="step-6">6</div>
+      <div class="step" id="step-7">7</div>
+      <div class="step" id="step-8">8</div>
+    </div>
+
+    <form id="form-step-1" class="form-page active">
+      <label for="name">NPC 本名 <span style="color:#e33">*</span></label>
+      <input type="text" id="name" maxlength="20" required placeholder="請輸入 NPC 本名">
+
+      <label for="nickname">NPC 稱謂</label>
+      <input type="text" id="nickname" maxlength="20" placeholder="請輸入 NPC 稱謂，若無則顯示本名">
+
+      <label for="npc_category">NPC 分類</label>
+      <input type="text" id="npc_category" maxlength="30" placeholder="例如：公務員證、教師證、居民證、敵方單位">
+
+      <div class="nav-btns">
+        <button class="pl" type="button" onclick="location.href='https://shierusha.github.io/login/login'">返回</button>
+        <button type="button" id="btn-step-1">下一步</button>
+      </div>
+    </form>
+
+    <form id="form-step-2" class="form-page">
+      <div id="warn-2" class="warn" style="display:none;"></div>
+
+      <label for="alignment">陣營</label>
+      <select id="alignment">
+        <option value="">？</option>
+        <option value="white">白</option>
+        <option value="black">黑</option>
+      </select>
+
+      <label for="gender">性別</label>
+      <input type="text" id="gender" maxlength="30" placeholder="可自由輸入">
+
+      <label for="age">年齡</label>
+      <input type="text" id="age" maxlength="30" placeholder="可自由輸入，例如：大約100歲">
+
+      <label for="height">身高</label>
+      <input type="text" id="height" maxlength="30" placeholder="可自由輸入">
+
+      <label for="weight">體重</label>
+      <input type="text" id="weight" maxlength="30" placeholder="可自由輸入">
+
+      <label for="race">種族</label>
+      <input type="text" id="race" maxlength="30" placeholder="請輸入種族">
+
+      <div class="nav-btns">
+        <button type="button" id="back-2">上一步</button>
+        <button type="button" id="btn-step-2">下一步</button>
+      </div>
+    </form>
+
+    <form id="form-step-3" class="form-page">
+      <label for="personality">個性</label>
+      <textarea id="personality" rows="2" placeholder="請輸入個性"></textarea>
+
+      <label for="likes">喜歡</label>
+      <textarea id="likes" rows="2" placeholder="請輸入喜歡的事物"></textarea>
+
+      <label for="hate">討厭</label>
+      <textarea id="hate" rows="2" placeholder="請輸入討厭的事物"></textarea>
+
+      <div class="nav-btns">
+        <button type="button" id="back-3">上一步</button>
+        <button type="button" id="btn-step-3">下一步</button>
+      </div>
+    </form>
+
+    <form id="form-step-4" class="form-page">
+      <label for="background">背景故事</label>
+      <textarea id="background" rows="3" placeholder="請輸入 NPC 背景故事"></textarea>
+
+      <div class="nav-btns">
+        <button type="button" id="back-4">上一步</button>
+        <button type="button" id="btn-step-4">下一步</button>
+      </div>
+    </form>
+
+    <form id="form-step-5" class="form-page">
+      <label style="margin-bottom:0.6em;">
+        NPC 設定/裏設定
+        <span style="color:#888;">
+          <br>可多條，可設定是否顯示在卡片上
+        </span>
+      </label>
+
+      <div id="note-list"></div>
+
+      <button type="button" id="add-note-btn" style="margin-top:0.8em;">＋新增 NPC 設定/裏設定</button>
+
+      <div class="nav-btns">
+        <button type="button" id="back-5">上一步</button>
+        <button type="button" id="btn-step-5">下一步</button>
+      </div>
+    </form>
+
+    <form id="form-step-6" class="form-page">
+      <label for="element">屬性</label>
+
+      <div id="multi-element-toggle" style="margin-bottom: 0.5em;">
+        <label>
+          <input type="checkbox" id="enable-multi-element">
+          多屬性
+        </label>
+      </div>
+
+      <div id="element-single-select">
+        <select id="element">
+          <option value="">無</option>
+          <option value="fire">火</option>
+          <option value="water">水</option>
+          <option value="ice">冰</option>
+          <option value="wind">風</option>
+          <option value="earth">土</option>
+          <option value="thunder">雷</option>
+          <option value="dark">暗</option>
+          <option value="light">光</option>
+        </select>
+      </div>
+
+      <div id="element-multi-select" style="display:none;">
+        <div class="element-options">
+          <label><input type="checkbox" class="element-multi-checkbox" value="fire"> 火</label>
+          <label><input type="checkbox" class="element-multi-checkbox" value="water"> 水</label>
+          <label><input type="checkbox" class="element-multi-checkbox" value="ice"> 冰</label>
+          <label><input type="checkbox" class="element-multi-checkbox" value="wind"> 風</label>
+          <label><input type="checkbox" class="element-multi-checkbox" value="earth"> 土</label>
+          <label><input type="checkbox" class="element-multi-checkbox" value="thunder"> 雷</label>
+          <label><input type="checkbox" class="element-multi-checkbox" value="dark"> 暗</label>
+          <label><input type="checkbox" class="element-multi-checkbox" value="light"> 光</label>
+        </div>
+      </div>
+
+      <label for="weakness_id">屬性弱點</label>
+      <select id="weakness_id">
+        <option value="">無</option>
+      </select>
+
+      <label for="preferred_role">定位</label>
+      <select id="preferred_role">
+        <option value="">未設定</option>
+        <option value="melee">近戰攻擊手</option>
+        <option value="ranger">遠攻攻擊手</option>
+        <option value="balance">普通攻擊手</option>
+      </select>
+
+      <label for="starting_position">起始站位</label>
+      <select id="starting_position">
+        <option value="">開戰時決定</option>
+        <option value="close">近戰區</option>
+        <option value="far">遠攻區</option>
+      </select>
+
+      <div class="nav-btns">
+        <button type="button" id="back-6">上一步</button>
+        <button type="button" id="btn-step-6">下一步</button>
+      </div>
+    </form>
+
+    <form id="form-step-7" class="form-page">
+      <div id="warn-7" class="warn" style="display:none;"></div>
+
+      <label>
+        請選擇職業
+        <span style="color:#888;">可複選，不限制數量</span>
+      </label>
+
+      <div class="job-grid" id="job-grid">
+        <div class="job-btn" data-job="attack">攻擊手</div>
+        <div class="job-btn" data-job="tank">坦克</div>
+        <div class="job-btn" data-job="buffer">增益手</div>
+        <div class="job-btn" data-job="jammer">妨礙手</div>
+        <div class="job-btn" data-job="healer">補師</div>
+      </div>
+
+      <div class="nav-btns">
+        <button type="button" id="back-7">上一步</button>
+        <button type="button" id="btn-step-7">下一步</button>
+      </div>
+    </form>
+
+    <form id="form-step-8" class="form-page">
+      <div class="skills-section">
+        <div class="npc-skill-note">
+          NPC 技能不計算星級與平衡分數。CD、開啟技能 CC、施放方式、施放範圍與技能效果皆由管理員手動設定。
+        </div>
+
+        <div class="skills-container"></div>
+
+        <div class="admin-skill-btn-block" style="margin-top:2em; text-align:center;">
+          <button type="button" id="admin-add-skill-btn">新增技能</button>
+        </div>
+
+        <div class="nav-btns">
+          <button type="button" id="back-8">上一步</button>
+          <button type="submit" id="submit-8">送出</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <script src="assets/js/npc-ap.js"></script>
+  <script src="assets/js/npc-main.js"></script>
+  <script src="assets/js/npc-submit.js"></script>
+  <script src="assets/js/npc-set-8.js"></script>
+
+</body>
+</html>
