@@ -14,20 +14,36 @@
 </head>
 <body>
 
-  <div class="npc-bg-switcher">
-    <button type="button" id="npc-bg-prev">上一張背景</button>
-    <select id="npc-bg-select">
-      <option value="https://shierusha.github.io/school-battle/teachers/img/8.webp">預設背景</option>
-    </select>
-    <button type="button" id="npc-bg-next">下一張背景</button>
-    <input type="url" id="background_image_url" placeholder="或直接輸入背景圖片網址">
-    <button type="button" id="npc-bg-apply">套用背景</button>
-  </div>
+  <button
+    type="button"
+    id="npc-change-bg-btn"
+    onclick="changeBg()"
+    style="
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 9999;
+      padding: 8px 20px;
+      font-size: 1.1em;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      cursor: pointer;
+    "
+  >
+    切換卡片背景
+  </button>
+
+  <input
+    type="hidden"
+    id="background_image_url"
+    value="https://shierusha.github.io/school-battle/teachers/img/1.webp"
+  >
 
   <div class="flip-card row-card" id="flipCard">
     <div class="flip-card-front">
       <div class="container-16-9">
-        <img class="bg-img" src="https://shierusha.github.io/school-battle/teachers/img/8.webp" alt="background">
+        <img class="bg-img" src="https://shierusha.github.io/school-battle/teachers/img/1.webp" alt="background">
 
         <div class="student-id" data-key="other_npcs.npc_category"></div>
 
@@ -123,7 +139,7 @@
 
     <div class="flip-card-back">
       <div class="container-16-9">
-        <img class="bg-img" src="https://shierusha.github.io/school-battle/teachers/img/8.webp" alt="background">
+        <img class="bg-img" src="https://shierusha.github.io/school-battle/teachers/img/1.webp" alt="background">
 
         <div class="skill-diamond"
              data-key="othernpc_skills.extra_skills"
