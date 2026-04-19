@@ -295,11 +295,15 @@
   }
 
   if (skill.target_select_type === 'range') {
-    if (isBlankValue(skill.max_targets)) {
-      skill.max_targets = 1;
+    if (skill.range === null || skill.range === undefined || skill.range === '') {
+      skill.range = 'same_zone';
     }
 
-    skill.range = null;
+    if (skill.range === 'same_zone') {
+      skill.max_targets = 1;
+    } else if (isBlankValue(skill.max_targets)) {
+      skill.max_targets = 1;
+    }
   }
 
   if (skill.target_select_type === 'people') {
@@ -801,6 +805,13 @@
     maxTargetsInput.classList.add('npc-readonly-input');
   }
 
+  if (skill.target_select_type === 'range' && skill.range === 'same_zone') {
+    maxTargetsInput.type = 'number';
+    maxTargetsInput.value = '1';
+    maxTargetsInput.disabled = true;
+    maxTargetsInput.classList.add('npc-readonly-input');
+  }
+
   maxTargetsInput.addEventListener('input', function () {
     formData.skills[idx].max_targets = this.value === '' ? '' : Number(this.value);
 
@@ -816,7 +827,23 @@
 
   const rangeSelect = document.createElement('select');
 
-  RANGE_OPTIONS.forEach(function (item) {
+  let currentRangeOptions = RANGE_OPTIONS;
+
+  if (skill.target_select_type === 'range') {
+    currentRangeOptions = [
+      { value: 'same_zone', label: '近距離（同區）' },
+      { value: 'cross_zone', label: '遠距離（跨區）' },
+      { value: 'all_zone', label: '遠近皆可（無限制距離）' }
+    ];
+  }
+
+  if (skill.target_select_type === 'global') {
+    currentRangeOptions = [
+      { value: NULL_SELECT_VALUE, label: '全域攻擊' }
+    ];
+  }
+
+  currentRangeOptions.forEach(function (item) {
     const option = document.createElement('option');
     option.value = item.value;
     option.textContent = item.label;
@@ -825,13 +852,19 @@
 
   rangeSelect.value = nullableToSelectValue(skill.range);
 
+  if (skill.target_select_type === 'range' && skill.range === null) {
+    rangeSelect.value = 'same_zone';
+    formData.skills[idx].range = 'same_zone';
+    formData.skills[idx].max_targets = 1;
+  }
+
   if (skill.target_faction === 'self') {
     rangeSelect.value = 'same_zone';
     rangeSelect.disabled = true;
     rangeSelect.classList.add('npc-readonly-input');
   }
 
-  if (skill.target_select_type === 'range' || skill.target_select_type === 'global') {
+  if (skill.target_select_type === 'global') {
     rangeSelect.value = NULL_SELECT_VALUE;
     rangeSelect.disabled = true;
     rangeSelect.classList.add('npc-readonly-input');
@@ -840,6 +873,11 @@
   rangeSelect.addEventListener('change', function () {
     formData.skills[idx].range = selectValueToNullable(this.value);
 
+    if (formData.skills[idx].target_select_type === 'range' && formData.skills[idx].range === 'same_zone') {
+      formData.skills[idx].max_targets = 1;
+    }
+
+    resetNpcSkillSelections(formData.skills[idx]);
     renderSkillsPage(formData.skills);
   });
 
@@ -990,12 +1028,19 @@
 
     if (onlySelfEffect && effectTarget !== 'self') return;
 
-    const targetMatched = isSharedEffectTargetMatched(effectTarget, selectedTarget);
-    const maxMatched = effectTarget === 'self' || effectTarget === 'team'
+    const isSelfAbilityEffect = effectTarget === 'self';
+    const isSelfHealingOrBuffEffect =
+      selectedTarget === 'self' &&
+      effectMaxTargets === 1 &&
+      ['heal', 'heal_only', 'buff', 'buff_only'].includes(effectType);
+
+    const targetMatched = isSharedEffectTargetMatched(effectTarget, selectedTarget) || isSelfHealingOrBuffEffect;
+
+    const maxMatched = isSelfAbilityEffect
       ? true
       : effectMaxTargets === maxTargets;
 
-    const typeMatched = effectTarget === 'self'
+    const typeMatched = isSelfAbilityEffect
       ? true
       : allowedEffectTypes.has(effectType);
 
@@ -1730,21 +1775,32 @@
       }
 
       if (skill.target_faction === 'self') {
-        skill.target_select_type = 'people';
-        skill.max_targets = 1;
+  skill.target_select_type = 'people';
+  skill.max_targets = 1;
 
-        if (skill.range === undefined || skill.range === '') {
-          skill.range = 'same_zone';
-        }
-      }
+  if (skill.range === undefined || skill.range === '') {
+    skill.range = 'same_zone';
+  }
+}
 
-      if (skill.target_select_type === 'global') {
-        skill.max_targets = null;
-      }
+if (skill.target_select_type === 'global') {
+  skill.max_targets = null;
+  skill.range = null;
+}
 
-      if (skill.need_cc === '') {
-        skill.need_cc = null;
-      }
+if (skill.target_select_type === 'range') {
+  if (skill.range === null || skill.range === undefined || skill.range === '') {
+    errors.push(`請選擇技能${skillNumber}的有效距離`);
+  }
+
+  if (skill.range === 'same_zone') {
+    skill.max_targets = 1;
+  }
+}
+
+if (skill.need_cc === '') {
+  skill.need_cc = null;
+}
     });
 
     return errors;
