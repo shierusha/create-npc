@@ -1,61 +1,3 @@
-(async function syncNpcAdminRoleFromDB() {
-  const playerId = localStorage.getItem('player_id');
-
-  if (!playerId) {
-    window.location.href = 'https://shierusha.github.io/login/login';
-    return;
-  }
-
-window.client = window.supabase
-  ? window.supabase.createClient(
-      'https://wfhwhvodgikpducrhgda.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmaHdodm9kZ2lrcGR1Y3JoZ2RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMTAwNjEsImV4cCI6MjA2MzU4NjA2MX0.P6P-x4SxjiR4VdWH6VFgY_ktgMac_OzuI4Bl7HWskz8'
-    )
-  : null;
-
-  if (!window.client) {
-    alert('Supabase 初始化失敗');
-    window.location.href = 'https://shierusha.github.io/login/login';
-    return;
-  }
-
-  let data;
-  let error;
-
-  try {
-    ({ data, error } = await client
-      .from('players')
-      .select('role,username')
-      .eq('player_id', playerId)
-      .single());
-  } catch (e) {
-    alert('你誰啊? 滾');
-    localStorage.clear();
-    window.location.href = 'https://shierusha.github.io/login/login';
-    return;
-  }
-
-  if (error || !data) {
-    alert('你誰啊? 滾');
-    localStorage.clear();
-    window.location.href = 'https://shierusha.github.io/login/login';
-    return;
-  }
-
-  if (data.role !== 'admin') {
-    window.location.href = 'https://shierusha.github.io/login/login';
-    return;
-  }
-
-  window.userRole = data.role || 'player';
-  window.currentPlayerId = playerId;
-  window.currentPlayerUsername = data.username || '';
-  localStorage.setItem('player_role', data.role);
-  localStorage.setItem('player_username', data.username || '');
-
-  await initNpcCreatePage();
-})();
-
 let formData = {
   othernpc_id: '',
   player_id: '',
@@ -88,11 +30,132 @@ let formData = {
 
 let currentStep = 1;
 
+window.formData = formData;
 window.skillEffectsList = null;
 window.npcSkillEffectsList = null;
 window.movementSkillsList = null;
 window.skillDebuffList = null;
 window.weaknessDict = {};
+window.userRole = '';
+window.currentPlayerId = '';
+window.currentPlayerUsername = '';
+
+(async function startNpcCreatePage() {
+  window.client = window.supabase
+    ? window.supabase.createClient(
+        'https://wfhwhvodgikpducrhgda.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmaHdodm9kZ2lrcGR1Y3JoZ2RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMTAwNjEsImV4cCI6MjA2MzU4NjA2MX0.P6P-x4SxjiR4VdWH6VFgY_ktgMac_OzuI4Bl7HWskz8'
+      )
+    : null;
+
+  if (!window.client) {
+    alert('Supabase 初始化失敗');
+    window.location.href = 'https://shierusha.github.io/login/login';
+    return;
+  }
+
+  const adminReady = await syncNpcAdminRoleFromDB();
+
+  if (!adminReady) {
+    return;
+  }
+
+  await initNpcCreatePage();
+})();
+
+async function syncNpcAdminRoleFromDB() {
+  let session = null;
+  let sessionError = null;
+
+  try {
+    const sessionResult = await window.client.auth.getSession();
+    session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
+    sessionError = sessionResult ? sessionResult.error : null;
+  } catch (error) {
+    sessionError = error;
+  }
+
+  if (sessionError) {
+    alert('讀取登入狀態失敗：' + sessionError.message);
+    return false;
+  }
+
+  const sessionPlayerId = session && session.user ? session.user.id : '';
+  const sessionEmail = session && session.user ? session.user.email : '';
+  const localPlayerId = localStorage.getItem('player_id') || '';
+  const candidateIds = [];
+
+  if (localPlayerId) candidateIds.push(localPlayerId);
+  if (sessionPlayerId && !candidateIds.includes(sessionPlayerId)) candidateIds.push(sessionPlayerId);
+
+  if (candidateIds.length === 0 && !sessionEmail) {
+    window.location.href = 'https://shierusha.github.io/login/login';
+    return false;
+  }
+
+  let playerData = null;
+  let queryError = null;
+
+  for (const playerId of candidateIds) {
+    const result = await window.client
+      .from('players')
+      .select('player_id,role,username,email')
+      .eq('player_id', playerId)
+      .maybeSingle();
+
+    if (result.error) {
+      queryError = result.error;
+      continue;
+    }
+
+    if (result.data) {
+      playerData = result.data;
+      break;
+    }
+  }
+
+  if (!playerData && sessionEmail) {
+    const result = await window.client
+      .from('players')
+      .select('player_id,role,username,email')
+      .eq('email', sessionEmail)
+      .maybeSingle();
+
+    if (result.error) {
+      queryError = result.error;
+    } else if (result.data) {
+      playerData = result.data;
+    }
+  }
+
+  if (!playerData && queryError) {
+    alert('查詢玩家權限失敗：' + queryError.message);
+    console.error('players 查詢失敗', queryError);
+    return false;
+  }
+
+  if (!playerData) {
+    alert('查無玩家資料，請重新登入。');
+    return false;
+  }
+
+  if (playerData.role !== 'admin') {
+    window.location.href = 'https://shierusha.github.io/login/login';
+    return false;
+  }
+
+  window.userRole = playerData.role;
+  window.currentPlayerId = playerData.player_id;
+  window.currentPlayerUsername = playerData.username || '';
+
+  localStorage.setItem('player_id', playerData.player_id);
+  localStorage.setItem('player_role', playerData.role);
+  localStorage.setItem('player_username', playerData.username || '');
+
+  formData.player_id = playerData.player_id;
+
+  return true;
+}
 
 async function initNpcCreatePage() {
   bindNpcBasicEvents();
@@ -103,6 +166,7 @@ async function initNpcCreatePage() {
   await renderWeaknessDropdown();
 
   const npcId = getNpcIdFromUrl();
+
   if (npcId) {
     await loadNpcDataToForm(npcId);
   }
@@ -127,7 +191,9 @@ async function initSkillEffectsList(callback) {
     return;
   }
 
-  const { data, error } = await client.from('skill_effects').select('*');
+  const { data, error } = await window.client
+    .from('skill_effects')
+    .select('*');
 
   if (error) {
     alert('載入共用技能效果資料失敗：' + error.message);
@@ -146,7 +212,9 @@ async function initNpcSkillEffectsList(callback) {
     return;
   }
 
-  const { data, error } = await client.from('npc_skill_effects').select('*');
+  const { data, error } = await window.client
+    .from('npc_skill_effects')
+    .select('*');
 
   if (error) {
     alert('載入 NPC 專用技能效果資料失敗：' + error.message);
@@ -165,7 +233,9 @@ async function initMovementSkillsList(callback) {
     return;
   }
 
-  const { data, error } = await client.from('movement_skills').select('*');
+  const { data, error } = await window.client
+    .from('movement_skills')
+    .select('*');
 
   if (error) {
     alert('載入移動技能資料失敗：' + error.message);
@@ -184,7 +254,9 @@ async function initSkillDebuffList(callback) {
     return;
   }
 
-  const { data, error } = await client.from('skill_debuff').select('*');
+  const { data, error } = await window.client
+    .from('skill_debuff')
+    .select('*');
 
   if (error) {
     alert('載入負作用資料失敗：' + error.message);
@@ -217,10 +289,9 @@ async function renderWeaknessDropdown() {
   const weakSelect = document.getElementById('weakness_id');
   if (!weakSelect) return;
 
-  const { data: weaknessArr, error } = await client
+  const { data, error } = await window.client
     .from('element_weakness')
-    .select('weakness_id,element,description')
-    .order('element');
+    .select('weakness_id,element,description');
 
   if (error) {
     alert('載入屬性弱點選單失敗：' + error.message);
@@ -230,13 +301,10 @@ async function renderWeaknessDropdown() {
   weakSelect.innerHTML = '<option value="">無</option>';
   window.weaknessDict = {};
 
-  (weaknessArr || []).forEach(item => {
+  (data || []).forEach(item => {
     const opt = document.createElement('option');
     opt.value = item.weakness_id;
-    opt.text =
-      translateElement(item.element) +
-      (item.description ? ` - ${item.description}` : '');
-
+    opt.text = translateElement(item.element) + (item.description ? ` - ${item.description}` : '');
     weakSelect.appendChild(opt);
     window.weaknessDict[item.weakness_id] = item;
   });
@@ -318,6 +386,15 @@ function setValue(id, value) {
   const el = document.getElementById(id);
   if (!el) return;
   el.value = value ?? '';
+}
+
+function getValue(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : '';
+}
+
+function getTrimValue(id) {
+  return getValue(id).trim();
 }
 
 function bindNpcStepEvents() {
@@ -411,9 +488,9 @@ function bindNpcStepEvents() {
 
   if (btn7) {
     btn7.onclick = function () {
-      formData.occupation_type = Array.isArray(formData.occupation_type)
-        ? formData.occupation_type
-        : [];
+      if (!Array.isArray(formData.occupation_type)) {
+        formData.occupation_type = [];
+      }
 
       updateNpcCard();
       showStep(8);
@@ -426,15 +503,6 @@ function bindNpcStepEvents() {
   if (back5) back5.onclick = function () { showStep(4); };
   if (back6) back6.onclick = function () { showStep(5); };
   if (back7) back7.onclick = function () { showStep(6); };
-}
-
-function getValue(id) {
-  const el = document.getElementById(id);
-  return el ? el.value : '';
-}
-
-function getTrimValue(id) {
-  return getValue(id).trim();
 }
 
 function bindNpcBasicEvents() {
@@ -488,6 +556,7 @@ function bindNpcBasicEvents() {
 
 function bindNpcElementEvents() {
   const enableMulti = document.getElementById('enable-multi-element');
+
   if (enableMulti) {
     enableMulti.addEventListener('change', function () {
       updateElementUI();
@@ -510,8 +579,10 @@ function renderStep6Dropdowns() {
   ];
 
   const elSelect = document.getElementById('element');
+
   if (elSelect) {
     elSelect.innerHTML = '<option value="">無</option>';
+
     baseElementList.forEach(item => {
       const opt = document.createElement('option');
       opt.value = item.value;
@@ -521,13 +592,19 @@ function renderStep6Dropdowns() {
   }
 
   const multiBox = document.getElementById('element-multi-select');
+
   if (multiBox && !multiBox.querySelector('.element-multi-checkbox')) {
     const wrapper = document.createElement('div');
     wrapper.className = 'element-options';
 
     baseElementList.forEach(item => {
       const label = document.createElement('label');
-      label.innerHTML = `<input type="checkbox" class="element-multi-checkbox" value="${item.value}"> ${item.text}`;
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'element-multi-checkbox';
+      checkbox.value = item.value;
+      label.appendChild(checkbox);
+      label.appendChild(document.createTextNode(' ' + item.text));
       wrapper.appendChild(label);
     });
 
@@ -567,7 +644,11 @@ function syncElementValueToUI() {
         updateNpcCard();
       };
     });
-  } else if (elSelect) {
+
+    return;
+  }
+
+  if (elSelect) {
     elSelect.value = Array.isArray(formData.element) && formData.element.length > 0
       ? formData.element[0]
       : '';
@@ -581,7 +662,10 @@ function syncElementValueToUI() {
 
 function bindNpcNoteEvents() {
   const addBtn = document.getElementById('add-note-btn');
-  if (addBtn) addBtn.onclick = addNote;
+
+  if (addBtn) {
+    addBtn.onclick = addNote;
+  }
 }
 
 function initNotesForm() {
@@ -626,24 +710,24 @@ function renderNotesRows() {
     label.appendChild(document.createTextNode('顯示'));
     row.appendChild(label);
 
-    const ta = document.createElement('textarea');
-    ta.className = 'note-content';
-    ta.value = note.content || '';
-    ta.rows = 2;
-    ta.placeholder = '請輸入 NPC 設定／裏設定';
-    ta.style.flex = '1';
-    ta.style.overflow = 'hidden';
-    ta.style.margin = '5px';
-    ta.style.width = '65%';
+    const textarea = document.createElement('textarea');
+    textarea.className = 'note-content';
+    textarea.value = note.content || '';
+    textarea.rows = 2;
+    textarea.placeholder = '請輸入 NPC 設定／裏設定';
+    textarea.style.flex = '1';
+    textarea.style.overflow = 'hidden';
+    textarea.style.margin = '5px';
+    textarea.style.width = '65%';
 
-    ta.addEventListener('input', function () {
+    textarea.addEventListener('input', function () {
       note.content = this.value;
       this.style.height = 'auto';
       this.style.height = this.scrollHeight + 'px';
       syncNpcNoteCard();
     });
 
-    row.appendChild(ta);
+    row.appendChild(textarea);
 
     const delBtn = document.createElement('button');
     delBtn.type = 'button';
@@ -657,13 +741,15 @@ function renderNotesRows() {
       deleteNote(idx);
     };
 
-    if (formData.notes.length === 1) delBtn.disabled = true;
+    if (formData.notes.length === 1) {
+      delBtn.disabled = true;
+    }
 
     row.appendChild(delBtn);
     notesContainer.appendChild(row);
 
-    ta.style.height = 'auto';
-    ta.style.height = ta.scrollHeight + 'px';
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
   });
 
   syncNpcNoteCard();
@@ -725,6 +811,7 @@ function renderJobGrid() {
 
 function updateJobButtons() {
   const jobs = Array.isArray(formData.occupation_type) ? formData.occupation_type : [];
+
   document.querySelectorAll('.job-btn').forEach(btn => {
     const job = btn.dataset.job;
     btn.classList.remove('disabled', 'selected');
@@ -770,6 +857,16 @@ function updateNpcCardBasic() {
   setCardText('other_npcs.name', formData.name || '');
   setCardText('other_npcs.nickname', formData.nickname || '');
   setCardText('other_npcs.npc_category', formData.npc_category || '');
+  setCardText('other_npcs.alignment', translateAlignment(formData.alignment));
+  setCardText('other_npcs.gender', formData.gender || '');
+  setCardText('other_npcs.age', formData.age || '');
+  setCardText('other_npcs.height', formData.height || '');
+  setCardText('other_npcs.weight', formData.weight || '');
+  setCardText('other_npcs.race', formData.race || '');
+  setCardText('other_npcs.personality', formData.personality || '');
+  setCardText('other_npcs.likes', formData.likes || '');
+  setCardText('other_npcs.hate', formData.hate || '');
+  setCardText('other_npcs.background', formData.background || '');
 
   document.querySelectorAll('.littlename-box').forEach(box => {
     const value = box.querySelector('[data-key="other_npcs.nickname"]');
@@ -782,17 +879,6 @@ function updateNpcCardBasic() {
       if (value) value.textContent = '';
     }
   });
-
-  setCardText('other_npcs.alignment', translateAlignment(formData.alignment));
-  setCardText('other_npcs.gender', formData.gender || '');
-  setCardText('other_npcs.age', formData.age || '');
-  setCardText('other_npcs.height', formData.height || '');
-  setCardText('other_npcs.weight', formData.weight || '');
-  setCardText('other_npcs.race', formData.race || '');
-  setCardText('other_npcs.personality', formData.personality || '');
-  setCardText('other_npcs.likes', formData.likes || '');
-  setCardText('other_npcs.hate', formData.hate || '');
-  setCardText('other_npcs.background', formData.background || '');
 }
 
 function updateNpcCardBattle() {
@@ -904,7 +990,7 @@ function translateOccupationArray(arr) {
 }
 
 async function loadNpcDataToForm(othernpcId) {
-  const { data: npc, error } = await client
+  const { data: npc, error } = await window.client
     .from('other_npcs')
     .select('*')
     .eq('othernpc_id', othernpcId)
@@ -941,22 +1027,31 @@ async function loadNpcDataToForm(othernpcId) {
 
   if (typeof setNpcBackgroundUrl === 'function') {
     setNpcBackgroundUrl(formData.background_image_url);
+  } else {
+    const bgInput = document.getElementById('background_image_url');
+    if (bgInput) bgInput.value = formData.background_image_url;
+
+    document.querySelectorAll('.bg-img').forEach(img => {
+      img.src = formData.background_image_url;
+    });
   }
 
-  const { data: notesArr } = await client
+  const notesResult = await window.client
     .from('othernpc_notes')
     .select('*')
     .eq('othernpc_id', othernpcId)
     .order('sort_order');
 
-  formData.notes = notesArr && notesArr.length
-    ? notesArr.map(note => ({
-        content: note.content || '',
-        is_public: !!note.is_public
-      }))
-    : [{ content: '', is_public: true }];
+  if (!notesResult.error && notesResult.data && notesResult.data.length) {
+    formData.notes = notesResult.data.map(note => ({
+      content: note.content || '',
+      is_public: !!note.is_public
+    }));
+  } else {
+    formData.notes = [{ content: '', is_public: true }];
+  }
 
-  const { data: imageArr } = await client
+  const imagesResult = await window.client
     .from('othernpc_images')
     .select('image_type,image_url')
     .eq('othernpc_id', othernpcId);
@@ -966,10 +1061,12 @@ async function loadNpcDataToForm(othernpcId) {
     back_url: ''
   };
 
-  (imageArr || []).forEach(img => {
-    if (img.image_type === 'front') formData.images.front_url = bustCache(img.image_url);
-    if (img.image_type === 'back') formData.images.back_url = bustCache(img.image_url);
-  });
+  if (!imagesResult.error && imagesResult.data) {
+    imagesResult.data.forEach(img => {
+      if (img.image_type === 'front') formData.images.front_url = bustCache(img.image_url);
+      if (img.image_type === 'back') formData.images.back_url = bustCache(img.image_url);
+    });
+  }
 
   await loadNpcSkillsToForm(othernpcId);
   updateNpcCard();
@@ -978,11 +1075,17 @@ async function loadNpcDataToForm(othernpcId) {
 async function loadNpcSkillsToForm(othernpcId) {
   await initAllNpcSkillLists();
 
-  const { data: skillsArr } = await client
+  const { data: skillsArr, error } = await window.client
     .from('othernpc_skills')
     .select('*')
     .eq('othernpc_id', othernpcId)
     .order('skill_slot');
+
+  if (error) {
+    alert('載入 NPC 技能資料失敗：' + error.message);
+    formData.skills = [{}, {}];
+    return;
+  }
 
   if (!skillsArr || !skillsArr.length) {
     formData.skills = [{}, {}];
@@ -1015,44 +1118,64 @@ async function loadNpcSkillsToForm(othernpcId) {
       move_ids: skillRow.linked_movement_id || ''
     };
 
-    const { data: effLinks } = await client
+    const effResult = await window.client
       .from('othernpc_skill_effect_links')
       .select('effect_id')
       .eq('skill_id', skillRow.id);
 
-    skill.effect_ids = effLinks ? effLinks.map(item => item.effect_id) : [];
+    skill.effect_ids = !effResult.error && effResult.data
+      ? effResult.data.map(item => item.effect_id)
+      : [];
 
-    const { data: npcEffLinks } = await client
+    const npcEffResult = await window.client
       .from('othernpc_skill_npc_effect_links')
       .select('npc_effect_id')
       .eq('skill_id', skillRow.id);
 
-    skill.npc_effect_ids = npcEffLinks ? npcEffLinks.map(item => item.npc_effect_id) : [];
+    skill.npc_effect_ids = !npcEffResult.error && npcEffResult.data
+      ? npcEffResult.data.map(item => item.npc_effect_id)
+      : [];
 
-    const { data: debLinks } = await client
+    const debResult = await window.client
       .from('othernpc_skill_debuff_links')
       .select('debuff_id,applied_to')
       .eq('skill_id', skillRow.id);
 
-    skill.debuffs = debLinks
-      ? debLinks.map(link => {
+    skill.debuffs = !debResult.error && debResult.data
+      ? debResult.data.map(link => {
           const detail = (window.skillDebuffList || []).find(item => item.debuff_id === link.debuff_id);
-          return detail
-            ? { ...detail, debuff_id: link.debuff_id, applied_to: link.applied_to || 'self' }
-            : { debuff_id: link.debuff_id, applied_to: link.applied_to || 'self' };
+
+          if (detail) {
+            return {
+              ...detail,
+              debuff_id: link.debuff_id,
+              applied_to: link.applied_to || 'self'
+            };
+          }
+
+          return {
+            debuff_id: link.debuff_id,
+            applied_to: link.applied_to || 'self'
+          };
         })
       : [];
 
     if (skill.othernpc_trigger_id) {
-      const { data: trigger } = await client
+      const triggerResult = await window.client
         .from('othernpc_passive_trigger')
         .select('condition,trigger_code,remarks')
         .eq('othernpc_trigger_id', skill.othernpc_trigger_id)
         .maybeSingle();
 
-      skill.passive_trigger_condition = trigger ? trigger.condition || '' : '';
-      skill.passive_trigger_code = trigger ? trigger.trigger_code || '' : '';
-      skill.passive_trigger_remarks = trigger ? trigger.remarks || '' : '';
+      if (!triggerResult.error && triggerResult.data) {
+        skill.passive_trigger_condition = triggerResult.data.condition || '';
+        skill.passive_trigger_code = triggerResult.data.trigger_code || '';
+        skill.passive_trigger_remarks = triggerResult.data.remarks || '';
+      } else {
+        skill.passive_trigger_condition = '';
+        skill.passive_trigger_code = '';
+        skill.passive_trigger_remarks = '';
+      }
     } else {
       skill.passive_trigger_condition = '';
       skill.passive_trigger_code = '';
@@ -1069,7 +1192,6 @@ async function loadNpcSkillsToForm(othernpcId) {
   formData.skills = newSkillsArr;
 }
 
-window.formData = formData;
 window.showStep = showStep;
 window.updateNpcCard = updateNpcCard;
 window.initSkillEffectsList = initSkillEffectsList;
