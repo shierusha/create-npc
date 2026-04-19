@@ -10,7 +10,6 @@
     self: '自身',
     enemy: '敵方',
     ally: '隊友',
-    team: '我方'
   };
 
   const TARGET_SELECT_TYPE_LABELS = {
@@ -274,51 +273,58 @@
     return skill;
   }
 
-  function applyNpcSkillForcedRules(skill) {
-    if (!skill) return;
+ function applyNpcSkillForcedRules(skill) {
+  if (!skill) return;
 
-    if (skill.target_faction === 'self') {
-      skill.target_select_type = 'people';
+  if (skill.target_faction === 'team') {
+    skill.target_faction = 'ally';
+  }
+
+  if (skill.target_faction === 'self') {
+    skill.target_select_type = 'people';
+    skill.max_targets = 1;
+
+    if (skill.range === undefined || skill.range === '') {
+      skill.range = 'same_zone';
+    }
+  }
+
+  if (skill.target_select_type === 'global') {
+    skill.max_targets = null;
+    skill.range = null;
+  }
+
+  if (skill.target_select_type === 'range') {
+    if (isBlankValue(skill.max_targets)) {
       skill.max_targets = 1;
+    }
 
-      if (skill.range === undefined || skill.range === '') {
+    skill.range = null;
+  }
+
+  if (skill.target_select_type === 'people') {
+    if (isBlankValue(skill.max_targets)) {
+      skill.max_targets = 1;
+    }
+
+    if (skill.range === undefined || skill.range === '') {
+      const preferredRole = formData.preferred_role || 'balance';
+
+      if (preferredRole === 'ranger') {
+        skill.range = 'cross_zone';
+      } else {
         skill.range = 'same_zone';
       }
     }
-
-    if (skill.target_select_type === 'global') {
-      skill.max_targets = null;
-    }
-
-    if (skill.target_select_type === 'range') {
-      if (isBlankValue(skill.max_targets)) {
-        skill.max_targets = 1;
-      }
-    }
-
-    if (skill.target_select_type === 'people') {
-      if (isBlankValue(skill.max_targets)) {
-        skill.max_targets = 1;
-      }
-
-      if (skill.range === undefined || skill.range === '') {
-        const preferredRole = formData.preferred_role || 'balance';
-
-        if (preferredRole === 'ranger') {
-          skill.range = 'cross_zone';
-        } else {
-          skill.range = 'same_zone';
-        }
-      }
-    }
-
-    if (skill.is_passive) {
-      skill.cd = null;
-      skill.use_movement = false;
-      skill.move_ids = '';
-      skill.linked_movement_id = null;
-    }
   }
+
+  if (skill.is_passive) {
+    skill.cd = null;
+    skill.use_movement = false;
+    skill.move_ids = '';
+    skill.linked_movement_id = null;
+  }
+}
 
   function resetNpcSkillSelections(skill) {
     if (!skill) return;
@@ -332,63 +338,61 @@
   }
 
   function getAllowedNpcTargetOptions() {
-    const targetMap = {
-      tank: ['self', 'enemy', 'ally'],
-      attack: ['enemy', 'ally'],
-      jammer: ['enemy', 'ally'],
-      healer: ['self', 'ally', 'team'],
-      buffer: ['self', 'ally', 'team']
-    };
+  const targetMap = {
+    tank: ['self', 'enemy', 'ally'],
+    attack: ['enemy', 'ally'],
+    jammer: ['enemy', 'ally'],
+    healer: ['self', 'ally'],
+    buffer: ['self', 'ally']
+  };
 
-    const labelMap = {
-      self: '自身',
-      enemy: '敵方',
-      ally: '隊友',
-      team: '我方'
-    };
+  const labelMap = {
+    self: '自身',
+    enemy: '敵方',
+    ally: '隊友'
+  };
 
-    const occ = Array.isArray(formData.occupation_type) ? formData.occupation_type : [];
-    const allowedSet = new Set();
+  const occ = Array.isArray(formData.occupation_type) ? formData.occupation_type : [];
+  const allowedSet = new Set();
 
-    if (occ.length === 0) {
-      ['self', 'enemy', 'ally', 'team'].forEach(function (item) {
-        allowedSet.add(item);
-      });
-    } else {
-      occ.forEach(function (job) {
-        if (targetMap[job]) {
-          targetMap[job].forEach(function (target) {
-            allowedSet.add(target);
-          });
-        }
-      });
-    }
-
-    const options = [];
-
-    ['self', 'enemy', 'ally', 'team'].forEach(function (key) {
-      if (allowedSet.has(key)) {
-        options.push({
-          value: key,
-          label: labelMap[key]
+  if (occ.length === 0) {
+    ['self', 'enemy', 'ally'].forEach(function (item) {
+      allowedSet.add(item);
+    });
+  } else {
+    occ.forEach(function (job) {
+      if (targetMap[job]) {
+        targetMap[job].forEach(function (target) {
+          allowedSet.add(target);
         });
       }
     });
+  }
 
-    const canUseNeutralTarget =
-      allowedSet.has('enemy') ||
-      allowedSet.has('ally') ||
-      allowedSet.has('team');
+  const options = [];
 
-    if (canUseNeutralTarget) {
+  ['self', 'enemy', 'ally'].forEach(function (key) {
+    if (allowedSet.has(key)) {
       options.push({
-        value: NULL_SELECT_VALUE,
-        label: '敵我不分'
+        value: key,
+        label: labelMap[key]
       });
     }
+  });
 
-    return options;
+  const canUseNeutralTarget =
+    allowedSet.has('enemy') ||
+    allowedSet.has('ally');
+
+  if (canUseNeutralTarget) {
+    options.push({
+      value: NULL_SELECT_VALUE,
+      label: '敵我不分'
+    });
   }
+
+  return options;
+}
 
   async function initAllSkillListsThenRender() {
     if (typeof window.initAllNpcSkillLists === 'function') {
@@ -703,199 +707,205 @@
     block.appendChild(createRow('技能敘述', textarea));
   }
 
-  function renderSkillTargetBlock(idx, block, skill) {
-    const targetSelect = document.createElement('select');
+ function renderSkillTargetBlock(idx, block, skill) {
+  const targetSelect = document.createElement('select');
 
-    const placeholder = document.createElement('option');
-    placeholder.value = '';
-    placeholder.textContent = '請選擇';
-    placeholder.disabled = true;
-    targetSelect.appendChild(placeholder);
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = '請選擇';
+  placeholder.disabled = true;
+  targetSelect.appendChild(placeholder);
 
-    const targetOptions = getAllowedNpcTargetOptions();
+  const targetOptions = getAllowedNpcTargetOptions();
 
-    targetOptions.forEach(function (item) {
-      const option = document.createElement('option');
-      option.value = item.value;
-      option.textContent = item.label;
-      targetSelect.appendChild(option);
-    });
+  targetOptions.forEach(function (item) {
+    const option = document.createElement('option');
+    option.value = item.value;
+    option.textContent = item.label;
+    targetSelect.appendChild(option);
+  });
 
-    const currentTargetValue = nullableToSelectValue(skill.target_faction);
-    const currentTargetAllowed = targetOptions.some(function (item) {
-      return item.value === currentTargetValue;
-    });
+  const currentTargetValue = nullableToSelectValue(skill.target_faction);
+  const currentTargetAllowed = targetOptions.some(function (item) {
+    return item.value === currentTargetValue;
+  });
 
-    if (skill.target_faction === '' || !currentTargetAllowed) {
-      targetSelect.value = '';
-      formData.skills[idx].target_faction = '';
-    } else {
-      targetSelect.value = currentTargetValue;
-    }
-
-    targetSelect.addEventListener('change', function () {
-      formData.skills[idx].target_faction = selectValueToNullable(this.value);
-
-      applyNpcSkillForcedRules(formData.skills[idx]);
-      resetNpcSkillSelections(formData.skills[idx]);
-
-      renderSkillsPage(formData.skills);
-    });
-
-    block.appendChild(createRow('技能施放對象', targetSelect));
-
-    const targetTypeSelect = document.createElement('select');
-
-    [
-      { value: 'people', label: '人頭' },
-      { value: 'range', label: '區域' },
-      { value: 'global', label: '全場' }
-    ].forEach(function (item) {
-      const option = document.createElement('option');
-      option.value = item.value;
-      option.textContent = item.label;
-      targetTypeSelect.appendChild(option);
-    });
-
-    targetTypeSelect.value = skill.target_select_type || 'people';
-
-    if (skill.target_faction === 'self') {
-      targetTypeSelect.disabled = true;
-      targetTypeSelect.classList.add('npc-readonly-input');
-    }
-
-    targetTypeSelect.addEventListener('change', function () {
-      formData.skills[idx].target_select_type = this.value;
-
-      applyNpcSkillForcedRules(formData.skills[idx]);
-      resetNpcSkillSelections(formData.skills[idx]);
-
-      renderSkillsPage(formData.skills);
-    });
-
-    block.appendChild(createRow('技能施放方式', targetTypeSelect));
-
-    const maxTargetsInput = document.createElement('input');
-
-    if (skill.target_select_type === 'global') {
-      maxTargetsInput.type = 'text';
-      maxTargetsInput.value = 'NULL';
-      maxTargetsInput.disabled = true;
-      maxTargetsInput.classList.add('npc-readonly-input');
-    } else {
-      maxTargetsInput.type = 'number';
-      maxTargetsInput.min = '1';
-      maxTargetsInput.step = '1';
-      maxTargetsInput.value = isBlankValue(skill.max_targets) ? '' : skill.max_targets;
-      maxTargetsInput.placeholder = skill.target_select_type === 'range' ? '請輸入區域數量' : '請輸入人數';
-    }
-
-    if (skill.target_faction === 'self') {
-      maxTargetsInput.type = 'number';
-      maxTargetsInput.value = '1';
-      maxTargetsInput.disabled = true;
-      maxTargetsInput.classList.add('npc-readonly-input');
-    }
-
-    maxTargetsInput.addEventListener('input', function () {
-      formData.skills[idx].max_targets = this.value === '' ? '' : Number(this.value);
-
-      resetNpcSkillSelections(formData.skills[idx]);
-      renderSkillsPage(formData.skills);
-    });
-
-    const maxTargetLabel = skill.target_select_type === 'range'
-      ? '技能施放範圍'
-      : '技能施放對象人數';
-
-    block.appendChild(createRow(maxTargetLabel, maxTargetsInput));
-
-    const rangeSelect = document.createElement('select');
-
-    RANGE_OPTIONS.forEach(function (item) {
-      const option = document.createElement('option');
-      option.value = item.value;
-      option.textContent = item.label;
-      rangeSelect.appendChild(option);
-    });
-
-    rangeSelect.value = nullableToSelectValue(skill.range);
-
-    if (skill.target_faction === 'self') {
-      rangeSelect.value = 'same_zone';
-      rangeSelect.disabled = true;
-      rangeSelect.classList.add('npc-readonly-input');
-    }
-
-    rangeSelect.addEventListener('change', function () {
-      formData.skills[idx].range = selectValueToNullable(this.value);
-
-      renderSkillsPage(formData.skills);
-    });
-
-    block.appendChild(createRow('技能有效距離', rangeSelect));
+  if (skill.target_faction === '' || !currentTargetAllowed) {
+    targetSelect.value = '';
+    formData.skills[idx].target_faction = '';
+  } else {
+    targetSelect.value = currentTargetValue;
   }
 
-  function renderNpcEffectBlock(idx, block, skill) {
-    const list = Array.isArray(window.npcSkillEffectsList) ? window.npcSkillEffectsList : [];
+  targetSelect.addEventListener('change', function () {
+    formData.skills[idx].target_faction = selectValueToNullable(this.value);
 
-    if (!Array.isArray(formData.skills[idx].npc_effect_ids)) {
-      formData.skills[idx].npc_effect_ids = [];
-    }
+    applyNpcSkillForcedRules(formData.skills[idx]);
+    resetNpcSkillSelections(formData.skills[idx]);
 
-    const section = createCollapsibleSection(
-      `npc-effect-${idx}`,
-      'NPC 技能效果',
-      `${formData.skills[idx].npc_effect_ids.length} 已選`
-    );
+    renderSkillsPage(formData.skills);
+  });
 
-    if (!list.length) {
-      section.body.appendChild(createElement('div', 'npc-effect-empty', '沒有可用的 NPC 技能效果'));
-      block.appendChild(section.wrapper);
-      return;
-    }
+  block.appendChild(createRow('技能施放對象', targetSelect));
 
-    list.forEach(function (effect) {
-      const effectId = effect.effect_id || effect.npc_effect_id;
-      if (!effectId) return;
+  const targetTypeSelect = document.createElement('select');
 
-      const row = createElement('label', 'npc-effect-item');
+  [
+    { value: 'people', label: '人頭' },
+    { value: 'range', label: '區域' },
+    { value: 'global', label: '全場' }
+  ].forEach(function (item) {
+    const option = document.createElement('option');
+    option.value = item.value;
+    option.textContent = item.label;
+    targetTypeSelect.appendChild(option);
+  });
 
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.value = effectId;
-      checkbox.checked = formData.skills[idx].npc_effect_ids.includes(effectId);
+  targetTypeSelect.value = skill.target_select_type || 'people';
 
-      checkbox.addEventListener('change', function () {
-        const arr = formData.skills[idx].npc_effect_ids;
+  if (skill.target_faction === 'self') {
+    targetTypeSelect.disabled = true;
+    targetTypeSelect.classList.add('npc-readonly-input');
+  }
 
-        if (this.checked) {
-          if (!arr.includes(effectId)) arr.push(effectId);
-        } else {
-          const pos = arr.indexOf(effectId);
-          if (pos >= 0) arr.splice(pos, 1);
-        }
+  targetTypeSelect.addEventListener('change', function () {
+    formData.skills[idx].target_select_type = this.value;
 
-        updateSkillPreview();
-      });
+    applyNpcSkillForcedRules(formData.skills[idx]);
+    resetNpcSkillSelections(formData.skills[idx]);
 
-      const name = createElement('span', 'npc-effect-name', effect.effect_name || '[未命名效果]');
+    renderSkillsPage(formData.skills);
+  });
 
-      const detail = createElement('a', 'npc-effect-detail', '詳細');
-      detail.href = '#';
-      detail.addEventListener('click', function (event) {
-        event.preventDefault();
-        showModal(effect.effect_name || 'NPC 技能效果', effect.description || '');
-      });
+  block.appendChild(createRow('技能施放方式', targetTypeSelect));
 
-      row.appendChild(checkbox);
-      row.appendChild(name);
-      row.appendChild(detail);
-      section.body.appendChild(row);
-    });
+  const maxTargetsInput = document.createElement('input');
 
+  if (skill.target_select_type === 'global') {
+    maxTargetsInput.type = 'text';
+    maxTargetsInput.value = 'NULL';
+    maxTargetsInput.disabled = true;
+    maxTargetsInput.classList.add('npc-readonly-input');
+  } else {
+    maxTargetsInput.type = 'number';
+    maxTargetsInput.min = '1';
+    maxTargetsInput.step = '1';
+    maxTargetsInput.value = isBlankValue(skill.max_targets) ? '' : skill.max_targets;
+    maxTargetsInput.placeholder = skill.target_select_type === 'range' ? '請輸入區域數量' : '請輸入人數';
+  }
+
+  if (skill.target_faction === 'self') {
+    maxTargetsInput.type = 'number';
+    maxTargetsInput.value = '1';
+    maxTargetsInput.disabled = true;
+    maxTargetsInput.classList.add('npc-readonly-input');
+  }
+
+  maxTargetsInput.addEventListener('input', function () {
+    formData.skills[idx].max_targets = this.value === '' ? '' : Number(this.value);
+
+    resetNpcSkillSelections(formData.skills[idx]);
+    renderSkillsPage(formData.skills);
+  });
+
+  const maxTargetLabel = skill.target_select_type === 'range'
+    ? '技能施放範圍'
+    : '技能施放對象人數';
+
+  block.appendChild(createRow(maxTargetLabel, maxTargetsInput));
+
+  const rangeSelect = document.createElement('select');
+
+  RANGE_OPTIONS.forEach(function (item) {
+    const option = document.createElement('option');
+    option.value = item.value;
+    option.textContent = item.label;
+    rangeSelect.appendChild(option);
+  });
+
+  rangeSelect.value = nullableToSelectValue(skill.range);
+
+  if (skill.target_faction === 'self') {
+    rangeSelect.value = 'same_zone';
+    rangeSelect.disabled = true;
+    rangeSelect.classList.add('npc-readonly-input');
+  }
+
+  if (skill.target_select_type === 'range' || skill.target_select_type === 'global') {
+    rangeSelect.value = NULL_SELECT_VALUE;
+    rangeSelect.disabled = true;
+    rangeSelect.classList.add('npc-readonly-input');
+  }
+
+  rangeSelect.addEventListener('change', function () {
+    formData.skills[idx].range = selectValueToNullable(this.value);
+
+    renderSkillsPage(formData.skills);
+  });
+
+  block.appendChild(createRow('技能有效距離', rangeSelect));
+}
+
+ function renderNpcEffectBlock(idx, block, skill) {
+  const list = Array.isArray(window.npcSkillEffectsList) ? window.npcSkillEffectsList : [];
+
+  if (!Array.isArray(formData.skills[idx].npc_effect_ids)) {
+    formData.skills[idx].npc_effect_ids = [];
+  }
+
+  const section = createCollapsibleSection(
+    `npc-effect-${idx}`,
+    'NPC 技能效果',
+    `${formData.skills[idx].npc_effect_ids.length} 已選`
+  );
+
+  if (!list.length) {
+    section.body.appendChild(createElement('div', 'npc-effect-empty', '沒有可用的 NPC 技能效果'));
     block.appendChild(section.wrapper);
+    return;
   }
+
+  list.forEach(function (effect) {
+    const effectId = effect.effect_id || effect.npc_effect_id;
+    if (!effectId) return;
+
+    const row = createElement('label', 'npc-effect-item');
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.value = effectId;
+    checkbox.checked = formData.skills[idx].npc_effect_ids.includes(effectId);
+
+    checkbox.addEventListener('change', function () {
+      const arr = formData.skills[idx].npc_effect_ids;
+
+      if (this.checked) {
+        if (!arr.includes(effectId)) arr.push(effectId);
+      } else {
+        const pos = arr.indexOf(effectId);
+        if (pos >= 0) arr.splice(pos, 1);
+      }
+
+      renderSkillsPage(formData.skills);
+    });
+
+    const name = createElement('span', 'npc-effect-name', effect.effect_name || '[未命名效果]');
+
+    const detail = createElement('a', 'npc-effect-detail', '詳細');
+    detail.href = '#';
+    detail.addEventListener('click', function (event) {
+      event.preventDefault();
+      showModal(effect.effect_name || 'NPC 技能效果', effect.description || '');
+    });
+
+    row.appendChild(checkbox);
+    row.appendChild(name);
+    row.appendChild(detail);
+    section.body.appendChild(row);
+  });
+
+  block.appendChild(section.wrapper);
+}
 
   function renderSharedSkillEffectBlock(idx, block, skill) {
     const list = Array.isArray(window.skillEffectsList) ? window.skillEffectsList : [];
@@ -963,43 +973,43 @@
   }
 
   function getSharedSkillEffectGroupMap(skill) {
-    const groupMap = {};
-    const selectedTarget = skill.target_faction;
-    const maxTargets = Number(skill.max_targets || 1);
-    const allowedEffectTypes = getAllowedEffectTypeSet();
-    const list = Array.isArray(window.skillEffectsList) ? window.skillEffectsList : [];
-    const onlySelfEffect = skill.target_select_type !== 'people';
+  const groupMap = {};
+  const selectedTarget = skill.target_faction;
+  const maxTargets = Number(skill.max_targets || 1);
+  const allowedEffectTypes = getAllowedEffectTypeSet();
+  const list = Array.isArray(window.skillEffectsList) ? window.skillEffectsList : [];
+  const onlySelfEffect = skill.target_select_type !== 'people';
 
-    list.forEach(function (effect) {
-      if (!effect || !effect.effect_id) return;
+  list.forEach(function (effect) {
+    if (!effect || !effect.effect_id) return;
 
-      const effectTarget = effect.target_faction === undefined ? null : effect.target_faction;
-      const effectMaxTargets = Number(effect.max_targets || 0);
-      const effectType = effect.effect_type || 'other';
-      const baseType = String(effectType).replace('_only', '') || 'other';
+    const effectTarget = effect.target_faction === undefined ? null : effect.target_faction;
+    const effectMaxTargets = Number(effect.max_targets || 0);
+    const effectType = effect.effect_type || 'other';
+    const baseType = String(effectType).replace('_only', '') || 'other';
 
-      if (onlySelfEffect && effectTarget !== 'self') return;
+    if (onlySelfEffect && effectTarget !== 'self') return;
 
-      const targetMatched = isSharedEffectTargetMatched(effectTarget, selectedTarget);
-      const maxMatched = effectTarget === 'self'
-        ? true
-        : effectMaxTargets === maxTargets;
+    const targetMatched = isSharedEffectTargetMatched(effectTarget, selectedTarget);
+    const maxMatched = effectTarget === 'self' || effectTarget === 'team'
+      ? true
+      : effectMaxTargets === maxTargets;
 
-      const typeMatched = effectTarget === 'self'
-        ? true
-        : allowedEffectTypes.has(effectType);
+    const typeMatched = effectTarget === 'self'
+      ? true
+      : allowedEffectTypes.has(effectType);
 
-      if (!targetMatched || !maxMatched || !typeMatched) return;
+    if (!targetMatched || !maxMatched || !typeMatched) return;
 
-      if (!groupMap[baseType]) {
-        groupMap[baseType] = [];
-      }
+    if (!groupMap[baseType]) {
+      groupMap[baseType] = [];
+    }
 
-      groupMap[baseType].push(effect);
-    });
+    groupMap[baseType].push(effect);
+  });
 
-    return groupMap;
-  }
+  return groupMap;
+}
 
   function getAllowedEffectTypeSet() {
     const occArr = Array.isArray(formData.occupation_type) ? formData.occupation_type : [];
@@ -1025,21 +1035,25 @@
     return set;
   }
 
-  function isSharedEffectTargetMatched(effectTarget, selectedTarget) {
-    if (effectTarget === 'self') {
-      return true;
-    }
-
-    if (selectedTarget === null) {
-      return effectTarget !== 'self';
-    }
-
-    if (selectedTarget === '') {
-      return false;
-    }
-
-    return effectTarget === selectedTarget;
+ function isSharedEffectTargetMatched(effectTarget, selectedTarget) {
+  if (effectTarget === 'self') {
+    return true;
   }
+
+  if (selectedTarget === null) {
+    return effectTarget !== 'self';
+  }
+
+  if (selectedTarget === '') {
+    return false;
+  }
+
+  if (selectedTarget === 'ally') {
+    return effectTarget === 'ally' || effectTarget === 'team';
+  }
+
+  return effectTarget === selectedTarget;
+}
 
   function createSharedEffectRow(idx, effect) {
     const selectedIds = formData.skills[idx].effect_ids || [];
@@ -1476,6 +1490,11 @@
     if (skill.cd === null || skill.cd === undefined || skill.cd === '') return '';
     return skill.cd;
   }
+  function formatSkillCdPreview(skill) {
+  if (!skill) return '';
+  if (skill.is_passive) return 'X';
+  return getSkillFinalCD(skill);
+}
 
   function formatTargetFaction(value) {
     if (value === null) return '敵我不分';
@@ -1513,35 +1532,35 @@
     return RANGE_LABELS[value] || value || '';
   }
 
-  function updateSkillPreview() {
-    const skills = getSafeSkillArray();
-    const s1 = skills[0] || {};
-    const s2 = skills[1] || {};
+ function updateSkillPreview() {
+  const skills = getSafeSkillArray();
+  const s1 = skills[0] || {};
+  const s2 = skills[1] || {};
 
-    setCardText('othernpc_skills.1.skill_name', s1.skill_name || '');
-    setCardText('othernpc_skills.1.cd', getSkillFinalCD(s1));
-    setCardText('othernpc_skills.1.max_targets', formatMaxTargets(s1));
-    setCardText('othernpc_skills.1.range', formatRange(s1.range));
-    setCardText('othernpc_skills.1.description', buildSkillDescriptionPreview(s1));
-    setCardText('othernpc_skills.1.effectsAndDebuffs', buildSkillEffectsPreview(s1));
+  setCardText('othernpc_skills.1.skill_name', s1.skill_name || '');
+  setCardText('othernpc_skills.1.cd', formatSkillCdPreview(s1));
+  setCardText('othernpc_skills.1.max_targets', formatMaxTargets(s1));
+  setCardText('othernpc_skills.1.range', formatRange(s1.range));
+  setCardText('othernpc_skills.1.description', buildSkillDescriptionPreview(s1));
+  setCardText('othernpc_skills.1.effectsAndDebuffs', buildSkillEffectsPreview(s1));
 
-    setCardText('othernpc_skills.2.skill_name', s2.skill_name || '');
-    setCardText('othernpc_skills.2.cd', getSkillFinalCD(s2));
-    setCardText('othernpc_skills.2.max_targets', formatMaxTargets(s2));
-    setCardText('othernpc_skills.2.range', formatRange(s2.range));
-    setCardText('othernpc_skills.2.description', buildSkillDescriptionPreview(s2));
-    setCardText('othernpc_skills.2.effectsAndDebuffs', buildSkillEffectsPreview(s2));
+  setCardText('othernpc_skills.2.skill_name', s2.skill_name || '');
+  setCardText('othernpc_skills.2.cd', formatSkillCdPreview(s2));
+  setCardText('othernpc_skills.2.max_targets', formatMaxTargets(s2));
+  setCardText('othernpc_skills.2.range', formatRange(s2.range));
+  setCardText('othernpc_skills.2.description', buildSkillDescriptionPreview(s2));
+  setCardText('othernpc_skills.2.effectsAndDebuffs', buildSkillEffectsPreview(s2));
 
-    updateExtraSkillDiamond();
+  updateExtraSkillDiamond();
 
-    if (typeof window.fitAll === 'function') {
-      window.fitAll();
-    }
-
-    if (typeof window.checkLongTextByCharCount === 'function') {
-      window.checkLongTextByCharCount();
-    }
+  if (typeof window.fitAll === 'function') {
+    window.fitAll();
   }
+
+  if (typeof window.checkLongTextByCharCount === 'function') {
+    window.checkLongTextByCharCount();
+  }
+}
 
   function setCardText(dataKey, text) {
     document.querySelectorAll(`[data-key="${dataKey}"]`).forEach(function (el) {
@@ -1564,60 +1583,59 @@
   }
 
   function buildSkillEffectsPreview(skill) {
-    const arr = [];
+  const arr = [];
 
-    if (!skill) return '';
+  if (!skill) return '';
 
-    const targetText = formatTargetFaction(skill.target_faction);
-    const typeText = formatTargetSelectType(skill.target_select_type);
+  const targetText = formatTargetFaction(skill.target_faction);
 
-    if (targetText || typeText) {
-      arr.push(`# ${[targetText, typeText].filter(Boolean).join(' / ')}`);
-    }
-
-    if (Array.isArray(skill.npc_effect_ids) && Array.isArray(window.npcSkillEffectsList)) {
-      skill.npc_effect_ids.forEach(function (effectId) {
-        const effect = window.npcSkillEffectsList.find(function (item) {
-          return item.effect_id === effectId || item.npc_effect_id === effectId;
-        });
-
-        if (effect) {
-          arr.push(`# ${effect.effect_name || 'NPC技能效果'}`);
-        }
-      });
-    }
-
-    if (Array.isArray(skill.effect_ids) && Array.isArray(window.skillEffectsList)) {
-      skill.effect_ids.forEach(function (effectId) {
-        const effect = window.skillEffectsList.find(function (item) {
-          return item.effect_id === effectId;
-        });
-
-        if (effect) {
-          arr.push(`# ${effect.effect_name || '技能效果'}`);
-        }
-      });
-    }
-
-    if (skill.use_movement && Array.isArray(window.movementSkillsList)) {
-      const move = window.movementSkillsList.find(function (item) {
-        return item.move_id === skill.move_ids || item.move_id === skill.linked_movement_id;
-      });
-
-      if (move) {
-        arr.push(`# ${move.move_name || '移動技能'}`);
-      }
-    }
-
-    if (Array.isArray(skill.debuffs)) {
-      skill.debuffs.forEach(function (debuff) {
-        const appliedLabel = debuff.applied_to === 'toally' ? '目標' : '自身';
-        arr.push(`# ${appliedLabel} ${debuff.debuff_name || '負作用'}`);
-      });
-    }
-
-    return arr.join('\n');
+  if (targetText) {
+    arr.push(`# ${targetText}`);
   }
+
+  if (Array.isArray(skill.npc_effect_ids) && Array.isArray(window.npcSkillEffectsList)) {
+    skill.npc_effect_ids.forEach(function (effectId) {
+      const effect = window.npcSkillEffectsList.find(function (item) {
+        return item.effect_id === effectId || item.npc_effect_id === effectId;
+      });
+
+      if (effect) {
+        arr.push(`# ${effect.effect_name || 'NPC技能效果'}`);
+      }
+    });
+  }
+
+  if (Array.isArray(skill.effect_ids) && Array.isArray(window.skillEffectsList)) {
+    skill.effect_ids.forEach(function (effectId) {
+      const effect = window.skillEffectsList.find(function (item) {
+        return item.effect_id === effectId;
+      });
+
+      if (effect) {
+        arr.push(`# ${effect.effect_name || '技能效果'}`);
+      }
+    });
+  }
+
+  if (skill.use_movement && Array.isArray(window.movementSkillsList)) {
+    const move = window.movementSkillsList.find(function (item) {
+      return item.move_id === skill.move_ids || item.move_id === skill.linked_movement_id;
+    });
+
+    if (move) {
+      arr.push(`# ${move.move_name || '移動技能'}`);
+    }
+  }
+
+  if (Array.isArray(skill.debuffs)) {
+    skill.debuffs.forEach(function (debuff) {
+      const appliedLabel = debuff.applied_to === 'toally' ? '目標' : '自身';
+      arr.push(`# ${appliedLabel} ${debuff.debuff_name || '負作用'}`);
+    });
+  }
+
+  return arr.join('\n');
+}
 
   function updateExtraSkillDiamond() {
     const diamond = document.querySelector('.skill-diamond');
