@@ -14,7 +14,8 @@
 </head>
 <body>
 
- <button style="
+  <button
+    style="
       position: fixed;
       left: 10px;
       width: 40px;
@@ -23,7 +24,11 @@
       border: 1px solid #ccc;
       border-radius: 6px;
       cursor: pointer;
-    " onclick="changeBg()" id="npc-change-bg-btn" type="button">
+    "
+    onclick="changeBg()"
+    id="npc-change-bg-btn"
+    type="button"
+  >
     切換卡片背景
   </button>
 
@@ -134,12 +139,14 @@
       <div class="container-16-9">
         <img class="bg-img" src="https://shierusha.github.io/school-battle/teachers/img/1.webp" alt="background">
 
-        <div class="skill-diamond"
-             data-key="othernpc_skills.extra_skills"
-             title="顯示額外技能"
-             tabindex="0"
-             style="cursor:pointer"
-             value=""></div>
+        <div
+          class="skill-diamond"
+          data-key="othernpc_skills.extra_skills"
+          title="顯示額外技能"
+          tabindex="0"
+          style="cursor:pointer"
+          value=""
+        ></div>
 
         <div class="student-id" data-key="other_npcs.npc_category"></div>
 
@@ -275,8 +282,31 @@
       <label for="nickname">稱謂</label>
       <input type="text" id="nickname" maxlength="20" placeholder="謝爾嚇第一行、最省會第二行">
 
-      <label for="npc_category">網站顯示分類</label>
-      <input type="text" id="npc_category" maxlength="30" placeholder="罪審會、貝利師、怪物 (參考謝爾夏證書頁面)">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:0.7em;">
+        <label for="npc_category" style="margin:0;">網站顯示分類</label>
+
+        <button
+          type="button"
+          onclick="window.open('https://shierusha.github.io/library/lib/allicd', '_blank', 'noopener,noreferrer')"
+          style="
+            width: auto;
+            margin: 0;
+            padding: 0.35em 0.75em;
+            font-size: 0.9em;
+            white-space: nowrap;
+            cursor: pointer;
+          "
+        >
+          (可參考謝爾夏證書頁面分類方式)
+        </button>
+      </div>
+
+      <input
+        type="text"
+        id="npc_category"
+        maxlength="30"
+        placeholder="罪審會、貝利斯、怪物 "
+      >
 
       <div class="nav-btns">
         <button class="pl" type="button" onclick="location.href='https://shierusha.github.io/login/login'">返回</button>
