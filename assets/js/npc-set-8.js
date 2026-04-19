@@ -280,26 +280,20 @@
     if (skill.target_faction === 'self') {
       skill.target_select_type = 'people';
       skill.max_targets = 1;
-      skill.range = 'same_zone';
+
+      if (skill.range === undefined || skill.range === '') {
+        skill.range = 'same_zone';
+      }
     }
 
     if (skill.target_select_type === 'global') {
       skill.max_targets = null;
-      skill.range = null;
-      skill.use_movement = false;
-      skill.move_ids = '';
-      skill.linked_movement_id = null;
     }
 
     if (skill.target_select_type === 'range') {
       if (isBlankValue(skill.max_targets)) {
         skill.max_targets = 1;
       }
-
-      skill.range = null;
-      skill.use_movement = false;
-      skill.move_ids = '';
-      skill.linked_movement_id = null;
     }
 
     if (skill.target_select_type === 'people') {
@@ -307,7 +301,7 @@
         skill.max_targets = 1;
       }
 
-      if (skill.range === null || skill.range === undefined || skill.range === '') {
+      if (skill.range === undefined || skill.range === '') {
         const preferredRole = formData.preferred_role || 'balance';
 
         if (preferredRole === 'ranger') {
@@ -833,16 +827,9 @@
       rangeSelect.classList.add('npc-readonly-input');
     }
 
-    if (skill.target_select_type === 'range' || skill.target_select_type === 'global') {
-      rangeSelect.value = NULL_SELECT_VALUE;
-      rangeSelect.disabled = true;
-      rangeSelect.classList.add('npc-readonly-input');
-    }
-
     rangeSelect.addEventListener('change', function () {
       formData.skills[idx].range = selectValueToNullable(this.value);
 
-      resetNpcSkillSelections(formData.skills[idx]);
       renderSkillsPage(formData.skills);
     });
 
@@ -1123,36 +1110,23 @@
       return;
     }
 
-    if (skill.target_select_type !== 'people') {
-      formData.skills[idx].use_movement = false;
-      formData.skills[idx].move_ids = '';
-      formData.skills[idx].linked_movement_id = null;
-      return;
-    }
-
-    if (Number(skill.max_targets || 0) !== 1) {
-      formData.skills[idx].use_movement = false;
-      formData.skills[idx].move_ids = '';
-      formData.skills[idx].linked_movement_id = null;
-      return;
-    }
-
     const list = Array.isArray(window.movementSkillsList) ? window.movementSkillsList : [];
 
+    const section = createCollapsibleSection(
+      `movement-${idx}`,
+      '移動技能',
+      formData.skills[idx].use_movement ? '已啟用' : ''
+    );
+
     if (!list.length) {
+      section.body.appendChild(createElement('div', 'npc-effect-empty', '沒有可用的移動技能'));
+      block.appendChild(section.wrapper);
       return;
     }
 
     const matchedList = list.filter(function (move) {
       return isMovementMatched(move, skill);
     });
-
-    if (!matchedList.length) {
-      formData.skills[idx].use_movement = false;
-      formData.skills[idx].move_ids = '';
-      formData.skills[idx].linked_movement_id = null;
-      return;
-    }
 
     const currentMoveId = skill.move_ids || skill.linked_movement_id || '';
     const currentMoveStillMatched = matchedList.some(function (move) {
@@ -1165,17 +1139,12 @@
       formData.skills[idx].linked_movement_id = null;
     }
 
-    const section = createCollapsibleSection(
-      `movement-${idx}`,
-      '移動技能',
-      formData.skills[idx].use_movement ? '已啟用' : ''
-    );
-
     const enableLabel = createElement('label', 'npc-effect-item');
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.checked = !!formData.skills[idx].use_movement;
+    checkbox.disabled = matchedList.length === 0;
 
     checkbox.addEventListener('change', function () {
       formData.skills[idx].use_movement = this.checked;
@@ -1196,6 +1165,12 @@
     enableLabel.appendChild(checkbox);
     enableLabel.appendChild(document.createTextNode('啟用移動技能'));
     section.body.appendChild(enableLabel);
+
+    if (!matchedList.length) {
+      section.body.appendChild(createElement('div', 'npc-effect-empty', '沒有符合條件的移動技能'));
+      block.appendChild(section.wrapper);
+      return;
+    }
 
     if (formData.skills[idx].use_movement) {
       matchedList.forEach(function (move) {
@@ -1235,33 +1210,50 @@
     block.appendChild(section.wrapper);
   }
 
- function isMovementMatched(move, skill) {
-  if (!move || !skill) return false;
+  function isMovementMatched(move, skill) {
+    if (!move || !skill) return false;
 
-  const selectedTarget = skill.target_faction;
-  const moveTarget = move.target_faction === undefined ? null : move.target_faction;
+    const moveTarget = move.target_faction === undefined ? null : move.target_faction;
+    const selectedTarget = skill.target_faction;
+    const selectedRange = skill.range === undefined ? '' : skill.range;
+    const moveRange = move.range === undefined ? '' : move.range;
 
-  if (selectedTarget === null) {
-    if (moveTarget !== 'self') return false;
-  } else if (selectedTarget === '') {
-    return false;
-  } else if (moveTarget !== selectedTarget) {
-    return false;
+    const isSelfMovement = moveTarget === 'self';
+
+    if (isSelfMovement) {
+      return true;
+    }
+
+    if (selectedRange === null) {
+      return false;
+    }
+
+    if (skill.target_select_type !== 'people') {
+      return false;
+    }
+
+    if (Number(skill.max_targets || 0) !== 1) {
+      return false;
+    }
+
+    if (selectedTarget === null) {
+      return false;
+    }
+
+    if (selectedTarget === '') {
+      return false;
+    }
+
+    if (moveTarget !== selectedTarget) {
+      return false;
+    }
+
+    if (selectedRange && moveRange !== selectedRange) {
+      return false;
+    }
+
+    return true;
   }
-
-  if (Number(move.max_targets || 0) !== Number(skill.max_targets || 0)) {
-    return false;
-  }
-
-  const selectedRange = skill.range === undefined || skill.range === null ? '' : skill.range;
-  const moveRange = move.range === undefined || move.range === null ? '' : move.range;
-
-  if (selectedRange && moveRange !== selectedRange) {
-    return false;
-  }
-
-  return true;
-}
 
   function renderSkillDebuffBlock(idx, block, skill) {
     const section = createElement('div', 'npc-debuff-section');
@@ -1722,16 +1714,14 @@
       if (skill.target_faction === 'self') {
         skill.target_select_type = 'people';
         skill.max_targets = 1;
-        skill.range = 'same_zone';
-      }
 
-      if (skill.target_select_type === 'range') {
-        skill.range = null;
+        if (skill.range === undefined || skill.range === '') {
+          skill.range = 'same_zone';
+        }
       }
 
       if (skill.target_select_type === 'global') {
         skill.max_targets = null;
-        skill.range = null;
       }
 
       if (skill.need_cc === '') {
