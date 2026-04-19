@@ -112,6 +112,64 @@
 
   const npcCollapsedSections = {};
 
+  injectNpcSkillLayoutStyle();
+
+  function injectNpcSkillLayoutStyle() {
+    if (document.getElementById('npc-set-8-layout-style')) return;
+
+    const style = document.createElement('style');
+    style.id = 'npc-set-8-layout-style';
+    style.textContent = `
+      @media (min-width: 901px) {
+        body {
+          overflow-x: auto;
+        }
+
+        #form-step-8 .skills-container {
+          display: flex;
+          flex-wrap: nowrap;
+          justify-content: flex-start;
+          align-items: flex-start;
+          gap: 2rem;
+          overflow-x: visible;
+          overflow-y: visible;
+          width: max-content;
+          min-width: 100%;
+        }
+
+        #form-step-8 .skills-container .skill-block {
+          flex: 0 0 calc((75vw - 6rem) / 2);
+          width: calc((75vw - 6rem) / 2);
+          max-width: calc((75vw - 6rem) / 2);
+          min-width: 360px;
+          box-sizing: border-box;
+        }
+      }
+
+      @media (max-width: 900px) {
+        #form-step-8 .skills-container {
+          display: flex;
+          flex-direction: column;
+          gap: 0.7rem;
+        }
+
+        #form-step-8 .skills-container .skill-block {
+          width: 100%;
+          max-width: none;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function getNpcSectionCollapsed(sectionKey) {
+    if (npcCollapsedSections[sectionKey] === undefined) {
+      npcCollapsedSections[sectionKey] = true;
+    }
+
+    return npcCollapsedSections[sectionKey];
+  }
+
   function nullableToSelectValue(value) {
     if (value === null || value === undefined) return NULL_SELECT_VALUE;
     return value;
@@ -158,6 +216,7 @@
 
     if (skill.skill_name === undefined || skill.skill_name === null) skill.skill_name = '';
     if (skill.description === undefined || skill.description === null) skill.description = '';
+
     if (skill.target_select_type === undefined || skill.target_select_type === null || skill.target_select_type === '') {
       skill.target_select_type = 'people';
     }
@@ -662,20 +721,22 @@
     block.appendChild(createRow('技能施放方式', targetTypeSelect));
 
     const maxTargetsInput = document.createElement('input');
-    maxTargetsInput.type = 'number';
-    maxTargetsInput.min = '1';
-    maxTargetsInput.step = '1';
 
     if (skill.target_select_type === 'global') {
+      maxTargetsInput.type = 'text';
       maxTargetsInput.value = 'NULL';
       maxTargetsInput.disabled = true;
       maxTargetsInput.classList.add('npc-readonly-input');
     } else {
+      maxTargetsInput.type = 'number';
+      maxTargetsInput.min = '1';
+      maxTargetsInput.step = '1';
       maxTargetsInput.value = isBlankValue(skill.max_targets) ? '' : skill.max_targets;
       maxTargetsInput.placeholder = skill.target_select_type === 'range' ? '請輸入區域數量' : '請輸入人數';
     }
 
     if (skill.target_faction === 'self') {
+      maxTargetsInput.type = 'number';
       maxTargetsInput.value = '1';
       maxTargetsInput.disabled = true;
       maxTargetsInput.classList.add('npc-readonly-input');
@@ -789,10 +850,6 @@
   }
 
   function renderSharedSkillEffectBlock(idx, block, skill) {
-    if (skill.target_select_type !== 'people') {
-      return;
-    }
-
     const list = Array.isArray(window.skillEffectsList) ? window.skillEffectsList : [];
 
     if (!Array.isArray(formData.skills[idx].effect_ids)) {
@@ -816,12 +873,12 @@
 
     const sectionKey = `shared-root-${idx}`;
 
-    if (npcCollapsedSections[sectionKey]) {
+    if (getNpcSectionCollapsed(sectionKey)) {
       section.classList.add('collapsed');
     }
 
     mainTitle.onclick = function () {
-      npcCollapsedSections[sectionKey] = !npcCollapsedSections[sectionKey];
+      npcCollapsedSections[sectionKey] = !getNpcSectionCollapsed(sectionKey);
       section.classList.toggle('collapsed', !!npcCollapsedSections[sectionKey]);
     };
 
@@ -862,8 +919,8 @@
     const selectedTarget = skill.target_faction;
     const maxTargets = Number(skill.max_targets || 1);
     const allowedEffectTypes = getAllowedEffectTypeSet();
-
     const list = Array.isArray(window.skillEffectsList) ? window.skillEffectsList : [];
+    const onlySelfEffect = skill.target_select_type !== 'people';
 
     list.forEach(function (effect) {
       if (!effect || !effect.effect_id) return;
@@ -872,6 +929,8 @@
       const effectMaxTargets = Number(effect.max_targets || 0);
       const effectType = effect.effect_type || 'other';
       const baseType = String(effectType).replace('_only', '') || 'other';
+
+      if (onlySelfEffect && effectTarget !== 'self') return;
 
       const targetMatched = isSharedEffectTargetMatched(effectTarget, selectedTarget);
       const maxMatched = effectTarget === 'self'
@@ -1311,12 +1370,12 @@
     wrapper.appendChild(toggle);
     wrapper.appendChild(body);
 
-    if (npcCollapsedSections[sectionKey]) {
+    if (getNpcSectionCollapsed(sectionKey)) {
       wrapper.classList.add('collapsed');
     }
 
     toggle.onclick = function () {
-      npcCollapsedSections[sectionKey] = !npcCollapsedSections[sectionKey];
+      npcCollapsedSections[sectionKey] = !getNpcSectionCollapsed(sectionKey);
       wrapper.classList.toggle('collapsed', !!npcCollapsedSections[sectionKey]);
     };
 
