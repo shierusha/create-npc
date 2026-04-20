@@ -5,6 +5,7 @@ let formData = {
   nickname: '',
   npc_category: '',
   background_image_url: 'https://shierusha.github.io/school-battle/teachers/img/1.webp',
+  namebox_color: '#3da2ad',
   alignment: '',
   gender: '',
   age: '',
@@ -1058,6 +1059,7 @@ async function loadNpcDataToForm(othernpcId) {
     nickname: npc.nickname || '',
     npc_category: npc.npc_category || '',
     background_image_url: npc.background_image_url || 'https://shierusha.github.io/school-battle/teachers/img/1.webp',
+    namebox_color: npc.namebox_color || '#3da2ad',
     attack_cc: npc.attack_cc ?? 0,
 dodge_cc: npc.dodge_cc ?? 0,
 cover_cc: npc.cover_cc ?? 0,
@@ -1121,7 +1123,9 @@ take_cc: npc.take_cc ?? 0,
       if (img.image_type === 'back') formData.images.back_url = bustCache(img.image_url);
     });
   }
-
+if (typeof setNpcNameboxColor === 'function') {
+  setNpcNameboxColor(formData.namebox_color || '#3da2ad');
+}
   await loadNpcSkillsToForm(othernpcId);
   updateNpcCard();
 }
