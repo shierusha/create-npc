@@ -2,8 +2,9 @@ function setNameFontSize(selector, maxChars) {
   document.querySelectorAll(selector).forEach(box => {
     const nameDiv = box.querySelector('.name-box');
     if (!nameDiv) return;
+
     const fontSize = box.offsetHeight / maxChars * 0.98;
-    nameDiv.style.fontSize = fontSize + "px";
+    nameDiv.style.fontSize = fontSize + 'px';
   });
 }
 
@@ -28,7 +29,7 @@ function setInfoBoxFontSize() {
   const fontSize = minHeight * 0.62;
 
   infoBoxes.forEach(box => {
-    box.style.fontSize = fontSize + "px";
+    box.style.fontSize = fontSize + 'px';
   });
 }
 
@@ -36,15 +37,16 @@ function setFlipBtnFontSize() {
   document.querySelectorAll('.row-flip-btn').forEach(box => {
     const btn = box.querySelector('.flip-btn');
     if (!btn) return;
+
     const fontSize = Math.max(box.offsetHeight * 0.6);
-    btn.style.fontSize = fontSize + "px";
+    btn.style.fontSize = fontSize + 'px';
   });
 }
 
 function setStudentIdFontSize() {
   document.querySelectorAll('.student-id').forEach(box => {
     const fontSize = Math.max(box.offsetHeight * 0.7);
-    box.style.fontSize = fontSize + "px";
+    box.style.fontSize = fontSize + 'px';
   });
 }
 
@@ -76,7 +78,7 @@ function checkLongTextByCharCount() {
 
     btn.style.display = 'block';
 
-    btn.onclick = function() {
+    btn.onclick = function () {
       const title = this.dataset.title || box.querySelector('.info-label')?.innerText || '內容';
       showInfoModal(title, value.innerHTML);
     };
@@ -84,33 +86,31 @@ function checkLongTextByCharCount() {
 }
 
 const npcBgList = [
-  "https://shierusha.github.io/school-battle/teachers/img/1.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/2.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/3.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/4.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/5.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/6.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/7.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/8.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/9.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/10.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/11.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/12.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/13.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/14.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/15.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/16.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/17.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/18.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/19.webp",
-  "https://shierusha.github.io/school-battle/teachers/img/20.webp"
+  'https://shierusha.github.io/school-battle/teachers/img/1.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/2.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/3.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/4.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/5.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/6.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/7.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/8.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/9.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/10.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/11.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/12.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/13.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/14.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/15.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/16.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/17.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/18.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/19.webp',
+  'https://shierusha.github.io/school-battle/teachers/img/20.webp'
 ];
 
 let npcBgIndex = 0;
 
-function setNpcBackgroundUrl(url) {
-  const finalUrl = url || npcBgList[0];
-  const DEFAULT_NPC_NAMEBOX_COLOR = '#3da2ad';
+const DEFAULT_NPC_NAMEBOX_COLOR = '#3da2ad';
 const NPC_NAMEBOX_ALPHA = 0.8;
 
 function normalizeNpcHexColor(value) {
@@ -183,6 +183,12 @@ function openNpcNameboxColorPicker() {
   }
 
   colorPicker.value = getCurrentNpcNameboxColor();
+
+  if (typeof colorPicker.showPicker === 'function') {
+    colorPicker.showPicker();
+    return;
+  }
+
   colorPicker.click();
 }
 
@@ -205,12 +211,18 @@ function bindNpcNameboxColorPicker() {
 function initNpcNameboxColor() {
   setNpcNameboxColor(getCurrentNpcNameboxColor());
 }
+
+function setNpcBackgroundUrl(url) {
+  const finalUrl = url || npcBgList[0];
+
   document.querySelectorAll('.bg-img').forEach(img => {
     img.src = finalUrl;
   });
 
   const bgInput = document.getElementById('background_image_url');
-  if (bgInput) bgInput.value = finalUrl;
+  if (bgInput) {
+    bgInput.value = finalUrl;
+  }
 
   window.currentNpcBackgroundUrl = finalUrl;
 
@@ -221,10 +233,14 @@ function initNpcNameboxColor() {
 
 function getCurrentNpcBackgroundUrl() {
   const bgInput = document.getElementById('background_image_url');
-  if (bgInput && bgInput.value) return bgInput.value;
+  if (bgInput && bgInput.value) {
+    return bgInput.value;
+  }
 
   const bgImg = document.querySelector('.bg-img');
-  if (bgImg && bgImg.src) return bgImg.src;
+  if (bgImg && bgImg.src) {
+    return bgImg.src;
+  }
 
   return npcBgList[0];
 }
@@ -253,13 +269,14 @@ function bindNpcModalClose() {
   const modal = document.getElementById('info-modal');
   if (!modal) return;
 
-  modal.addEventListener('click', function(e) {
+  modal.addEventListener('click', function (e) {
     if (e.target === this) {
       e.stopPropagation();
       this.style.display = 'none';
     }
   });
 }
+
 window.setNpcNameboxColor = setNpcNameboxColor;
 window.getCurrentNpcNameboxColor = getCurrentNpcNameboxColor;
 window.openNpcNameboxColorPicker = openNpcNameboxColorPicker;
@@ -270,7 +287,7 @@ window.fitAll = fitAll;
 window.checkLongTextByCharCount = checkLongTextByCharCount;
 window.showInfoModal = showInfoModal;
 
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', function () {
   initNpcCardBackground();
   initNpcNameboxColor();
   bindNpcNameboxColorPicker();
@@ -279,12 +296,12 @@ window.addEventListener('DOMContentLoaded', function() {
   checkLongTextByCharCount();
 });
 
-window.addEventListener('resize', function() {
+window.addEventListener('resize', function () {
   fitAll();
   checkLongTextByCharCount();
 });
 
-window.addEventListener('load', function() {
+window.addEventListener('load', function () {
   fitAll();
   checkLongTextByCharCount();
 });
