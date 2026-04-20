@@ -240,6 +240,27 @@
   opacity: 0.5;
 }
 
+.npc-cc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem 1rem;
+  margin: 1rem 0 1.4rem;
+}
+
+.npc-cc-field label {
+  margin-top: 0;
+}
+
+.npc-cc-field input {
+  margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .npc-cc-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   #npc-change-bg-btn {
     left: 6px;
