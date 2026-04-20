@@ -1687,43 +1687,46 @@ function setCardText(dataKey, text) {
   return arr.join('\n');
 }
 
-  function updateExtraSkillDiamond() {
-    const diamond = document.querySelector('.skill-diamond');
-    if (!diamond) return;
+ function updateExtraSkillDiamond() {
+  const diamond = document.querySelector('.skill-diamond');
+  if (!diamond) return;
 
-    const extraSkills = getSafeSkillArray().slice(2);
+  const extraSkills = getSafeSkillArray().slice(2);
 
-    if (!extraSkills.length) {
-      diamond.setAttribute('value', '');
-      diamond.style.display = 'none';
-      return;
-    }
-
-    const popupText = extraSkills.map(function (skill, idx) {
-      const title = skill.skill_name || `額外技能${idx + 3}`;
-      const cdText = getSkillFinalCD(skill);
-      const desc = buildSkillDescriptionPreview(skill);
-      const effects = buildSkillEffectsPreview(skill);
-
-      return [
-  title,
-  cdText === '' || cdText === null || cdText === undefined ? '' : `CD：${cdText}`,
-  desc,
-  effects
-].filter(Boolean).join('\n');
-    }).join('\n\n');
-
-    diamond.setAttribute('value', popupText);
-    diamond.style.display = '';
-
-    diamond.onclick = function () {
-      const text = this.getAttribute('value');
-
-      if (text) {
-        showModal('額外技能', text);
-      }
-    };
+  if (!extraSkills.length) {
+    diamond.setAttribute('value', '');
+    diamond.style.display = 'none';
+    return;
   }
+
+  const popupText = extraSkills.map(function (skill, idx) {
+    const title = skill.skill_name || `額外技能${idx + 3}`;
+    const cdText = getSkillFinalCD(skill);
+    const desc = buildSkillDescriptionPreview(skill);
+    const effects = buildSkillEffectsPreview(skill);
+
+    const titleLine = cdText === '' || cdText === null || cdText === undefined
+      ? title
+      : `${title} CD：${cdText}`;
+
+    return [
+      titleLine,
+      desc,
+      effects
+    ].filter(Boolean).join('\n');
+  }).join('\n\n');
+
+  diamond.setAttribute('value', popupText);
+  diamond.style.display = '';
+
+  diamond.onclick = function () {
+    const text = this.getAttribute('value');
+
+    if (text) {
+      showModal('額外技能', text);
+    }
+  };
+}
 
   function validateNpcSkillsBeforeSubmit() {
     const errors = [];
