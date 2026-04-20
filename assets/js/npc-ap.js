@@ -110,7 +110,101 @@ let npcBgIndex = 0;
 
 function setNpcBackgroundUrl(url) {
   const finalUrl = url || npcBgList[0];
+  const DEFAULT_NPC_NAMEBOX_COLOR = '#3da2ad';
+const NPC_NAMEBOX_ALPHA = 0.8;
 
+function normalizeNpcHexColor(value) {
+  if (typeof value !== 'string') {
+    return DEFAULT_NPC_NAMEBOX_COLOR;
+  }
+
+  const color = value.trim();
+
+  if (/^#[0-9a-fA-F]{6}$/.test(color)) {
+    return color.toLowerCase();
+  }
+
+  return DEFAULT_NPC_NAMEBOX_COLOR;
+}
+
+function hexToNpcRgba(hex, alpha) {
+  const normalized = normalizeNpcHexColor(hex);
+  const r = parseInt(normalized.slice(1, 3), 16);
+  const g = parseInt(normalized.slice(3, 5), 16);
+  const b = parseInt(normalized.slice(5, 7), 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function setNpcNameboxColor(color) {
+  const normalizedColor = normalizeNpcHexColor(color);
+  const rgbaColor = hexToNpcRgba(normalizedColor, NPC_NAMEBOX_ALPHA);
+
+  document.querySelectorAll('.name-box').forEach(box => {
+    box.style.background = rgbaColor;
+  });
+
+  const colorInput = document.getElementById('namebox_color');
+  if (colorInput) {
+    colorInput.value = normalizedColor;
+  }
+
+  const colorPicker = document.getElementById('namebox_color_picker');
+  if (colorPicker) {
+    colorPicker.value = normalizedColor;
+  }
+
+  window.currentNpcNameboxColor = normalizedColor;
+
+  if (typeof formData !== 'undefined' && formData) {
+    formData.namebox_color = normalizedColor;
+  }
+}
+
+function getCurrentNpcNameboxColor() {
+  const colorInput = document.getElementById('namebox_color');
+
+  if (colorInput && colorInput.value) {
+    return normalizeNpcHexColor(colorInput.value);
+  }
+
+  if (typeof formData !== 'undefined' && formData && formData.namebox_color) {
+    return normalizeNpcHexColor(formData.namebox_color);
+  }
+
+  return DEFAULT_NPC_NAMEBOX_COLOR;
+}
+
+function openNpcNameboxColorPicker() {
+  const colorPicker = document.getElementById('namebox_color_picker');
+
+  if (!colorPicker) {
+    return;
+  }
+
+  colorPicker.value = getCurrentNpcNameboxColor();
+  colorPicker.click();
+}
+
+function bindNpcNameboxColorPicker() {
+  const colorPicker = document.getElementById('namebox_color_picker');
+
+  if (!colorPicker) {
+    return;
+  }
+
+  colorPicker.addEventListener('input', function () {
+    setNpcNameboxColor(this.value);
+  });
+
+  colorPicker.addEventListener('change', function () {
+    setNpcNameboxColor(this.value);
+  });
+}
+
+function initNpcNameboxColor() {
+  setNpcNameboxColor(getCurrentNpcNameboxColor());
+}
   document.querySelectorAll('.bg-img').forEach(img => {
     img.src = finalUrl;
   });
@@ -166,7 +260,9 @@ function bindNpcModalClose() {
     }
   });
 }
-
+window.setNpcNameboxColor = setNpcNameboxColor;
+window.getCurrentNpcNameboxColor = getCurrentNpcNameboxColor;
+window.openNpcNameboxColorPicker = openNpcNameboxColorPicker;
 window.setNpcBackgroundUrl = setNpcBackgroundUrl;
 window.getCurrentNpcBackgroundUrl = getCurrentNpcBackgroundUrl;
 window.changeBg = changeBg;
@@ -176,6 +272,8 @@ window.showInfoModal = showInfoModal;
 
 window.addEventListener('DOMContentLoaded', function() {
   initNpcCardBackground();
+  initNpcNameboxColor();
+  bindNpcNameboxColorPicker();
   bindNpcModalClose();
   fitAll();
   checkLongTextByCharCount();
