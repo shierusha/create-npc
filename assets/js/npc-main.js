@@ -15,6 +15,10 @@ let formData = {
   likes: '',
   hate: '',
   background: '',
+  attack_cc: 0,
+dodge_cc: 0,
+cover_cc: 0,
+take_cc: 0,
   notes: [{ content: '', is_public: true }],
   element: [],
   weakness_id: '',
@@ -350,9 +354,13 @@ function showStep(step) {
     setValue('background', formData.background);
   }
 
-  if (step === 5) {
-    initNotesForm();
-  }
+if (step === 5) {
+  setValue('attack_cc', formData.attack_cc ?? 0);
+  setValue('dodge_cc', formData.dodge_cc ?? 0);
+  setValue('cover_cc', formData.cover_cc ?? 0);
+  setValue('take_cc', formData.take_cc ?? 0);
+  initNotesForm();
+}
 
   if (step === 6) {
     renderStep6Dropdowns();
@@ -395,6 +403,21 @@ function getValue(id) {
 
 function getTrimValue(id) {
   return getValue(id).trim();
+}
+function getNonNegativeIntegerValue(id) {
+  const value = getValue(id);
+
+  if (value === '') {
+    return 0;
+  }
+
+  const number = Number(value);
+
+  if (!Number.isInteger(number) || number < 0) {
+    return 0;
+  }
+
+  return number;
 }
 
 function bindNpcStepEvents() {
@@ -467,13 +490,18 @@ function bindNpcStepEvents() {
     };
   }
 
-  if (btn5) {
-    btn5.onclick = function () {
-      normalizeNpcNotes();
-      updateNpcCard();
-      showStep(6);
-    };
-  }
+ if (btn5) {
+  btn5.onclick = function () {
+    formData.attack_cc = getNonNegativeIntegerValue('attack_cc');
+    formData.dodge_cc = getNonNegativeIntegerValue('dodge_cc');
+    formData.cover_cc = getNonNegativeIntegerValue('cover_cc');
+    formData.take_cc = getNonNegativeIntegerValue('take_cc');
+
+    normalizeNpcNotes();
+    updateNpcCard();
+    showStep(6);
+  };
+}
 
   if (btn6) {
     btn6.onclick = function () {
@@ -542,6 +570,28 @@ function bindNpcBasicEvents() {
       updateNpcCard();
     });
   });
+
+  ['attack_cc', 'dodge_cc', 'cover_cc', 'take_cc'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  el.addEventListener('input', function () {
+    const number = Number(this.value);
+
+    if (this.value === '') {
+      formData[id] = 0;
+      return;
+    }
+
+    if (!Number.isInteger(number) || number < 0) {
+      this.value = 0;
+      formData[id] = 0;
+      return;
+    }
+
+    formData[id] = number;
+  });
+});
 
   ['weakness_id', 'preferred_role', 'starting_position'].forEach(id => {
     const el = document.getElementById(id);
@@ -1008,6 +1058,10 @@ async function loadNpcDataToForm(othernpcId) {
     nickname: npc.nickname || '',
     npc_category: npc.npc_category || '',
     background_image_url: npc.background_image_url || 'https://shierusha.github.io/school-battle/teachers/img/1.webp',
+    attack_cc: npc.attack_cc ?? 0,
+dodge_cc: npc.dodge_cc ?? 0,
+cover_cc: npc.cover_cc ?? 0,
+take_cc: npc.take_cc ?? 0,
     alignment: npc.alignment || '',
     gender: npc.gender || '',
     age: npc.age || '',
