@@ -657,43 +657,48 @@
   }
 
   function renderSkillCdAndNeedCcBlock(idx, block, skill) {
-    const cdInput = document.createElement('input');
-    cdInput.type = 'number';
-    cdInput.min = '0';
-    cdInput.step = '1';
-    cdInput.placeholder = '請輸入技能 CD';
-    cdInput.value = skill.is_passive ? '' : toNumberOrBlank(skill.cd);
-    cdInput.disabled = !!skill.is_passive;
+  const cdInput = document.createElement('input');
+  cdInput.type = 'number';
+  cdInput.min = '0';
+  cdInput.step = '1';
+  cdInput.placeholder = '請輸入技能 CD';
+  cdInput.value = skill.is_passive ? '' : toNumberOrBlank(skill.cd);
+  cdInput.disabled = !!skill.is_passive;
 
-    if (skill.is_passive) {
-      cdInput.classList.add('npc-readonly-input');
-    }
-
-    cdInput.addEventListener('input', function () {
-      formData.skills[idx].cd = this.value === '' ? '' : Number(this.value);
-      updateSkillPreview();
-    });
-
-    block.appendChild(createRow('技能 CD', cdInput));
-
-    const cdDisplay = createElement('div', 'npc-cd-display');
-    cdDisplay.textContent = skill.is_passive ? '技能CD：被動' : `技能CD：${isBlankValue(skill.cd) ? '' : skill.cd}`;
-    block.appendChild(cdDisplay);
-
-    const needCcInput = document.createElement('input');
-    needCcInput.type = 'number';
-    needCcInput.min = '0';
-    needCcInput.step = '1';
-    needCcInput.placeholder = '空值代表開啟技能無須 CC';
-    needCcInput.value = toNumberOrBlank(skill.need_cc);
-
-    needCcInput.addEventListener('input', function () {
-      formData.skills[idx].need_cc = this.value === '' ? null : Number(this.value);
-      updateSkillPreview();
-    });
-
-    block.appendChild(createRow('開啟技能 CC', needCcInput));
+  if (skill.is_passive) {
+    cdInput.classList.add('npc-readonly-input');
   }
+
+  const cdDisplay = createElement('div', 'npc-cd-display');
+  cdDisplay.textContent = skill.is_passive
+    ? '技能CD：被動'
+    : `技能CD：${skill.cd === null || skill.cd === undefined || skill.cd === '' ? '' : skill.cd}`;
+
+  cdInput.addEventListener('input', function () {
+    formData.skills[idx].cd = this.value === '' ? '' : Number(this.value);
+
+    cdDisplay.textContent = `技能CD：${formData.skills[idx].cd === '' ? '' : formData.skills[idx].cd}`;
+
+    updateSkillPreview();
+  });
+
+  block.appendChild(createRow('技能 CD', cdInput));
+  block.appendChild(cdDisplay);
+
+  const needCcInput = document.createElement('input');
+  needCcInput.type = 'number';
+  needCcInput.min = '0';
+  needCcInput.step = '1';
+  needCcInput.placeholder = '空值代表開啟技能無須 CC';
+  needCcInput.value = toNumberOrBlank(skill.need_cc);
+
+  needCcInput.addEventListener('input', function () {
+    formData.skills[idx].need_cc = this.value === '' ? null : Number(this.value);
+    updateSkillPreview();
+  });
+
+  block.appendChild(createRow('開啟技能 CC', needCcInput));
+}
 
   function renderSkillDescriptionBlock(idx, block, skill) {
     const textarea = document.createElement('textarea');
@@ -1607,11 +1612,11 @@
   }
 }
 
-  function setCardText(dataKey, text) {
-    document.querySelectorAll(`[data-key="${dataKey}"]`).forEach(function (el) {
-      el.textContent = text || '';
-    });
-  }
+function setCardText(dataKey, text) {
+  document.querySelectorAll(`[data-key="${dataKey}"]`).forEach(function (el) {
+    el.textContent = text === null || text === undefined ? '' : String(text);
+  });
+}
 
   function buildSkillDescriptionPreview(skill) {
     const parts = [];
@@ -1701,11 +1706,11 @@
       const effects = buildSkillEffectsPreview(skill);
 
       return [
-        title,
-        cdText ? `CD：${cdText}` : '',
-        desc,
-        effects
-      ].filter(Boolean).join('\n');
+  title,
+  cdText === '' || cdText === null || cdText === undefined ? '' : `CD：${cdText}`,
+  desc,
+  effects
+].filter(Boolean).join('\n');
     }).join('\n\n');
 
     diamond.setAttribute('value', popupText);
