@@ -27,6 +27,41 @@
     " onclick="changeBg()" id="npc-change-bg-btn" type="button">
     切<br>換<br>卡<br>片<br>背<br>景
   </button>
+  <button style="
+      position: fixed;
+      left: 10px;
+      width: 39px;
+      z-index: 9999;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #FFF;
+    " onclick="openNpcNameboxColorPicker()" id="npc-change-namebox-color-btn" type="button">
+    調<br>整<br>名<br>字<br>背<br>景<br>色
+  </button>
+
+  <input
+    type="color"
+    id="namebox_color_picker"
+    value="#3da2ad"
+    style="
+      position: fixed;
+      left: 58px;
+      top: 184px;
+      width: 42px;
+      height: 42px;
+      z-index: 9998;
+      opacity: 0;
+      pointer-events: none;
+    "
+  >
+
+  <input
+    type="hidden"
+    id="namebox_color"
+    value="#3da2ad"
+  >
 
   <input
     type="hidden"
