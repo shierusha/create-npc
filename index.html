@@ -370,23 +370,84 @@
       </div>
     </form>
 
-    <form id="form-step-5" class="form-page">
-      <label style="margin-bottom:0.6em;">
-        NPC 設定/裏設定
-        <span style="color:#888;">
-          <br>可多條，可設定是否顯示在卡片上
-        </span>
-      </label>
+   <form id="form-step-5" class="form-page">
+  <h3>NPC能力設定</h3>
 
-      <div id="note-list"></div>
+  <div class="npc-cc-grid">
+    <div class="npc-cc-field">
+      <label for="attack_cc">攻擊CC</label>
+      <input
+        type="number"
+        id="attack_cc"
+        min="0"
+        step="1"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        placeholder="請輸入攻擊CC"
+      >
+    </div>
 
-      <button type="button" id="add-note-btn" style="margin-top:0.8em;">＋新增 NPC 設定/裏設定</button>
+    <div class="npc-cc-field">
+      <label for="dodge_cc">閃避CC</label>
+      <input
+        type="number"
+        id="dodge_cc"
+        min="0"
+        step="1"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        placeholder="請輸入閃避CC"
+      >
+    </div>
 
-      <div class="nav-btns">
-        <button type="button" id="back-5">上一步</button>
-        <button type="button" id="btn-step-5">下一步</button>
-      </div>
-    </form>
+    <div class="npc-cc-field">
+      <label for="cover_cc">掩護CC</label>
+      <input
+        type="number"
+        id="cover_cc"
+        min="0"
+        step="1"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        placeholder="請輸入掩護CC"
+      >
+    </div>
+
+    <div class="npc-cc-field">
+      <label for="take_cc">擋刀CC</label>
+      <input
+        type="number"
+        id="take_cc"
+        min="0"
+        step="1"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        placeholder="請輸入擋刀CC"
+      >
+    </div>
+  </div>
+
+  <h3>NPC 設定/裏設定</h3>
+  <p class="npc-inline-help">
+    可多條，可設定是否顯示在卡片上。
+  </p>
+     <div class="npc-skill-note">
+    請自行在設定新增角色CC<br>
+    例：<br>
+    本角色的能力為<br>
+    攻擊CC 70　　掩護CC 45<br>
+    閃避CC 70　　擋刀CC 20
+  </div>
+
+  <div id="note-list"></div>
+
+  <button type="button" id="add-note-btn">新增設定</button>
+
+  <div class="nav-btns">
+    <button type="button" id="back-5">上一步</button>
+    <button type="button" id="btn-step-5">下一步</button>
+  </div>
+</form>
 
     <form id="form-step-6" class="form-page">
       <label for="element">屬性</label>
