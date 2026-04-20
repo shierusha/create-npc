@@ -284,3 +284,25 @@
     max-width: none;
   }
 }
+
+#npc-change-namebox-color-btn {
+  top: 160px;
+  line-height: 1.25;
+  font-size: 0.95rem;
+  color: inherit;
+  word-break: keep-all;
+  text-align: center;
+}
+
+#npc-change-namebox-color-btn:hover {
+  filter: brightness(0.96);
+}
+
+@media (max-width: 768px) {
+  #npc-change-namebox-color-btn {
+    left: 6px;
+    width: 38px;
+    padding: 8px;
+    font-size: 0.86rem;
+  }
+}
