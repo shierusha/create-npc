@@ -585,47 +585,6 @@
       </div>
     </form>
   </div>
-  <script>
-    (async function redirectLeafNpcCreator() {
-      const LEAF_PLAYER_ID = '32d2c681-43f4-4f24-8014-44cdbe80411d';
-      const LEAF_REDIRECT_URL = 'https://shierusha.github.io/login/npc_manage';
-
-      function redirectLeafPlayer() {
-        alert('葉子葉子花');
-        window.location.replace(LEAF_REDIRECT_URL);
-      }
-
-      const localPlayerId = localStorage.getItem('player_id') || '';
-
-      if (localPlayerId === LEAF_PLAYER_ID) {
-        redirectLeafPlayer();
-        return;
-      }
-
-      if (!window.supabase) {
-        return;
-      }
-
-      try {
-        const gateClient = window.supabase.createClient(
-          'https://wfhwhvodgikpducrhgda.supabase.co',
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXJhYmFzZSIsInJlZiI6IndmaHdodm9kZ2lrcGR1Y3JoZ2RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMTAwNjEsImV4cCI6MjA2MzU4NjA2MX0.P6P-x4SxjiR4VdWH6VFgY_ktgMac_OzuI4Bl7HWskz8'
-        );
-
-        const sessionResult = await gateClient.auth.getSession();
-        const sessionPlayerId = sessionResult && sessionResult.data && sessionResult.data.session && sessionResult.data.session.user
-          ? sessionResult.data.session.user.id
-          : '';
-
-        if (sessionPlayerId === LEAF_PLAYER_ID) {
-          localStorage.setItem('player_id', sessionPlayerId);
-          redirectLeafPlayer();
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    })();
-  </script>
 
   <script src="assets/js/npc-ap.js"></script>
   <script src="assets/js/npc-main.js"></script>
