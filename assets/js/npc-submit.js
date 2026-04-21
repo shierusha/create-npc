@@ -1,6 +1,9 @@
 const SPECIAL_NOTIFY_PLAYER_IDS = ['9eee80cf-baf2-4297-b163-59699bad4ed4'];
+const LEAF_NOTIFY_PLAYER_IDS = ['8aea3076-294c-41f6-bb38-0a99da77c098'];
+const NPC_MANAGE_PAGE_URL = 'https://shierusha.github.io/login/npc_manage';
+
 const NPC_SUBMIT_COOLDOWN = 60 * 1000;
-const NPC_CREATE_PAGE_URL = 'https://shierusha.github.io/create-npc/index.html';
+const NPC_CREATE_PAGE_URL = 'https://shierusha.github.io/create-npc/index';
 const DEFAULT_NPC_NAMEBOX_COLOR_FOR_SUBMIT = '#3da2ad';
 const DEFAULT_NPC_BACKGROUND_URL_FOR_SUBMIT = 'https://shierusha.github.io/school-battle/teachers/img/1.webp';
 const NULL_SELECT_VALUE_FOR_SUBMIT = '__NPC_NULL__';
@@ -151,6 +154,10 @@ function getNpcCurrentLoginPlayerId() {
 
 function isNpcSpecialNotifyPlayer(playerId) {
   return SPECIAL_NOTIFY_PLAYER_IDS.includes(playerId);
+}
+
+function isNpcLeafNotifyPlayer(playerId) {
+  return LEAF_NOTIFY_PLAYER_IDS.includes(playerId);
 }
 
 async function checkNpcNameDuplicate(name, othernpcId) {
@@ -660,13 +667,25 @@ async function submitAllNpcData() {
     await deleteOldNpcSkillRows(othernpcId);
     await saveNpcSkills(othernpcId, data);
 
-    alert(
-      isSpecialNotify
+
+const isLeafNotify = isNpcLeafNotifyPlayer(loginPlayerId);
+
+if (isLeafNotify) {
+  alert('葉子葉子花');
+  window.location.href = NPC_MANAGE_PAGE_URL;
+  return;
+}
+
+alert(
+  isSpecialNotify
         ? '班班長的工具寵尋著班班長的味道來了_ 喵嗚!'
         : '請自行將資料拿去審查團報備'
-    );
+);
 
-    window.location.href = `${NPC_CREATE_PAGE_URL}?othernpc_id=${encodeURIComponent(othernpcId)}`;
+window.location.href = `${NPC_CREATE_PAGE_URL}?othernpc_id=${encodeURIComponent(othernpcId)}`;
+
+
+    
   } catch (error) {
     console.error('NPC 送出失敗', error);
     alert('送出失敗：' + (error && error.message ? error.message : error));
