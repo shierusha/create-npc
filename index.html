@@ -2,1527 +2,595 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>謝爾夏｜NPC管理頁面</title>
+  <title>謝爾夏 NPC 建立/修改表</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://shierusha.github.io/create-student/stidcard/sql-id/ap-stu-card.css">
+  <link rel="stylesheet" href="https://shierusha.github.io/create-student/charlist.css">
+  <link rel="stylesheet" href="assets/css/npc-create.css">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root {
-      --main-blue: #143158;
-      --soft-blue: #1d4076;
-      --light-blue: #eef2fa;
-      --white: #ffffff;
-      --bg: #f4f7fa;
-      --danger: #f66464;
-      --green: #4e892a;
-      --yellow: #ffc940;
-      --shadow: 0 2px 16px #0001;
-      --radius: 1.3rem;
-    }
-
-    body {
-      font-family: "Noto Sans TC", sans-serif;
-      background: var(--bg);
-      color: var(--main-blue);
-      margin: 0;
-      padding: 2rem;
-      min-height: 100vh;
-      box-sizing: border-box;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: auto;
-      background: var(--white);
-      padding: 2rem;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-
-    h2 {
-      text-align: center;
-      margin: 0 0 1.3rem;
-      letter-spacing: 0.05em;
-    }
-
-    h3 {
-      margin: 0 0 0.8rem;
-      color: #3d648d;
-      letter-spacing: 0.04em;
-    }
-
-    .top-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1.2rem;
-      flex-wrap: wrap;
-    }
-
-    .search-row {
-      display: flex;
-      gap: 0.8rem;
-      align-items: center;
-      flex: 1;
-      min-width: 260px;
-    }
-
-    .search-row input {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 0.55rem 0.85rem;
-      border-radius: 0.7rem;
-      border: 1px solid #c8d2e0;
-      font-size: 1rem;
-      font-family: "Noto Sans TC", sans-serif;
-      background: #fbfcff;
-      color: var(--main-blue);
-    }
-
-    .msg {
-      min-height: 1.5em;
-      margin-bottom: 1rem;
-      color: #1767a0;
-      font-weight: 700;
-    }
-
-    .return-btn,
-    .reload-btn,
-    .btn {
-      background: #1767a0;
-      color: #fff;
-      border: none;
-      border-radius: 0.55em;
-      padding: 0.36em 0.85em;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: "Noto Sans TC", sans-serif;
-      white-space: nowrap;
-      transition: filter 0.18s, transform 0.18s;
-    }
-
-    .return-btn,
-    .reload-btn {
-      background: var(--light-blue);
-      color: var(--main-blue);
-      border-radius: 2em;
-      padding: 0.65em 1.5em;
-      font-size: 1rem;
-    }
-
-    .return-btn:hover,
-    .reload-btn:hover,
-    .btn:hover {
-      filter: brightness(0.94);
-    }
-
-    .btn:active,
-    .return-btn:active,
-    .reload-btn:active {
-      transform: translateY(1px);
-    }
-
-    .btn-card {
-      background: #3d648d;
-    }
-
-    .btn-note {
-      background: var(--yellow);
-      color: #333;
-    }
-
-    .btn-front {
-      background: #7a5dc7;
-    }
-
-    .btn-back {
-      background: #4c7b9d;
-    }
-
-    .btn-edit {
-      background: var(--green);
-    }
-
-    .btn-close {
-      background: #8b96a8;
-    }
-
-    .npc-section {
-      margin-top: 1.5rem;
-      padding-top: 0.5rem;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-      border-radius: 0.9rem;
-      border: 1px solid #eef2fa;
-      background: #fff;
-      margin-bottom: 1.2rem;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 680px;
-    }
-
-    th,
-    td {
-      border-bottom: 1px solid #eef2fa;
-      padding: 0.58em 0.72em;
-      text-align: left;
-      vertical-align: middle;
-    }
-
-    th {
-      background: #f4f7fa;
-      font-size: 1rem;
-      color: #1d4076;
-      font-weight: 800;
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    .npc-name {
-      font-weight: 800;
-      letter-spacing: 0.03em;
-    }
-
-    .alignment-pill {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 2.5em;
-      border-radius: 999px;
-      padding: 0.18em 0.7em;
-      background: #eef2fa;
-      color: #1d4076;
-      font-weight: 800;
-    }
-
-    .alignment-white {
-      background: #edf7ff;
-      color: #1767a0;
-    }
-
-    .alignment-black {
-      background: #2c3140;
-      color: #fff;
-    }
-
-    .alignment-unknown {
-      background: #fff1d6;
-      color: #a06400;
-    }
-
-    .action-cell {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem;
-    }
-
-    .expand-row {
-      background: #f7f9fd;
-    }
-
-    .note-box {
-      padding: 1rem 1.2rem;
-      background: #f4f7fa;
-      border-radius: 0.8rem;
-      line-height: 1.7;
-      white-space: pre-line;
-    }
-
-    .note-box ul {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    .note-box li {
-      margin: 0.35em 0;
-    }
-
-    .empty-text {
-      color: #7a8598;
-      font-style: italic;
-    }
-
-    .modal-bg {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.28);
-      z-index: 1001;
-      justify-content: center;
-      align-items: center;
-      padding: 1rem;
-      box-sizing: border-box;
-    }
-
-    .modal {
-      background: #fff;
-      border-radius: 1em;
-      width: min(96vw, 520px);
-      padding: 1.5rem;
-      box-shadow: 0 4px 24px #0004;
-      position: relative;
-      box-sizing: border-box;
-    }
-
-    .modal h3 {
-      margin: 0 2.4rem 1rem 0;
-      color: var(--main-blue);
-    }
-
-    .close-btn {
-      position: absolute;
-      top: 0.7rem;
-      right: 0.9rem;
-      background: none;
-      border: none;
-      color: #999;
-      font-size: 1.6rem;
-      cursor: pointer;
-      line-height: 1;
-    }
-
-    .canvas-wrap {
-      position: relative;
-      width: 100%;
-      max-width: 400px;
-      aspect-ratio: 8 / 9;
-      margin: 0 auto 0.8rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    #image-edit-canvas {
-      width: 100%;
-      height: 100%;
-      max-width: 400px;
-      max-height: 450px;
-      display: block;
-      background: #ddd;
-      border-radius: 0.7em;
-      touch-action: none;
-    }
-
-    #image-redbox-frame {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      max-width: 400px;
-      max-height: 450px;
-      pointer-events: none;
-      z-index: 10;
-      object-fit: contain;
-    }
-
-    .file-input {
-      margin: 0.6rem 0;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 0.6rem;
-      flex-wrap: wrap;
-      margin-top: 0.7rem;
-    }
-
-    .modal-msg {
-      min-height: 1.5em;
-      color: #1767a0;
-      margin-top: 0.7rem;
-      font-weight: 700;
-    }
-
-    .hint {
-      font-size: 0.92rem;
-      color: #777;
-      line-height: 1.6;
-      margin-top: 0.6rem;
-    }
-
-    @media (max-width: 700px) {
-      body {
-        padding: 1rem;
-      }
-
-      .container {
-        padding: 1.2rem;
-      }
-
-      .top-row {
-        align-items: stretch;
-      }
-
-      .search-row {
-        min-width: 100%;
-      }
-
-      .return-btn,
-      .reload-btn {
-        width: 100%;
-      }
-
-      th,
-      td {
-        font-size: 0.95rem;
-      }
-
-      .modal {
-        padding: 1.2rem;
-      }
-    }
-  </style>
 </head>
 <body>
-  <div class="container">
-    <h2>謝爾夏 NPC 管理頁面</h2>
 
-    <div class="top-row">
-      <div class="search-row">
-        <input id="search-input" type="text" placeholder="搜尋 NPC 名字、歸屬、陣營">
-      </div>
-      <button class="reload-btn" type="button" id="npc-list-btn">NPC一覽表</button>
-      <button class="return-btn" type="button" onclick="location.href='admin.html'">返回管理者首頁</button>
-    </div>
-
-    <div class="msg" id="msg"></div>
-
-    <div id="npc-sections"></div>
-  </div>
-
-  <div class="modal-bg" id="image-upload-modal-bg">
-    <div class="modal">
-      <button class="close-btn" type="button" id="image-upload-close-btn">×</button>
-      <h3 id="image-upload-title">上傳照片</h3>
-
-      <div class="canvas-wrap">
-        <canvas id="image-edit-canvas" width="400" height="450"></canvas>
-        <img src="https://shierusha.github.io/create-student/imgs/export-0.png" id="image-redbox-frame" alt="紅框定位圖">
-      </div>
-
-      <input class="file-input" type="file" id="image-upload-file" accept="image/*">
-
-      <div class="modal-actions">
-        <button type="button" class="btn" id="image-mirror-btn">鏡射</button>
-        <button type="button" class="btn btn-edit" id="image-submit-btn">儲存上傳</button>
-        <button type="button" class="btn btn-close" id="image-cancel-btn">取消</button>
-      </div>
-
-      <div class="modal-msg" id="image-upload-msg"></div>
-
-      <div class="hint">
-        電腦：A/D 旋轉、拖移、滾輪縮放；手機：雙指縮放/旋轉，單指拖移
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const SUPABASE_URL = 'https://wfhwhvodgikpducrhgda.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmaHdodm9kZ2lrcGR1Y3JoZ2RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMTAwNjEsImV4cCI6MjA2MzU4NjA2MX0.P6P-x4SxjiR4VdWH6VFgY_ktgMac_OzuI4Bl7HWskz8';
-
-    const NPC_CARD_BASE_URL = 'https://shierusha.github.io/school-battle/NPC/npc-idcard';
-    const NPC_EDIT_BASE_URL = 'https://shierusha.github.io/create-npc/index.html';
-    const LOGIN_URL = 'https://shierusha.github.io/login/login';
-    const STORAGE_BUCKET = 'student-img';
-    const LEAF_PLAYER_ID = '8aea3076-294c-41f6-bb38-0a99da77c098';
-    const NPC_LIST_URL = 'https://shierusha.github.io/library/lib/allnpc';
-    const LEAF_NPC_LIST_URL = 'https://shierusha.github.io/library/lib/allnpc?playid=0513';
-
-    const BASE_HIDDEN_NPC_CATEGORIES = [
-      '內部測試'
-    ];
-
-    const HIDDEN_CATEGORY_SOURCE_PLAYER_IDS = [
-      '8aea3076-294c-41f6-bb38-0a99da77c098'
-    ];
-
-    const FULL_PERMISSION_PLAYER_IDS = [
-      '32d2c681-43f4-4f24-8014-44cdbe80411d'
-    ];
-
-    const PUBLIC_PERMISSION_PLAYER_IDS = [
-      '9eee80cf-baf2-4297-b163-59699bad4ed4'
-    ];
-
-    const HIDDEN_PERMISSION_PLAYER_IDS = [
-      '8aea3076-294c-41f6-bb38-0a99da77c098'
-    ];
-
-    const ALIGNMENT_LABELS = {
-      white: '白',
-      black: '黑'
-    };
-
-    const ALIGNMENT_SORT_ORDER = {
-      white: 1,
-      black: 2
-    };
-
-    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    let currentPlayerId = '';
-    let currentPlayerRole = '';
-    let npcRows = [];
-    let filteredNpcRows = [];
-    let openNoteRowId = '';
-    let openNoteHtml = '';
-    let uploadNpc = null;
-    let uploadImageType = '';
-    let uploadImage = null;
-    let uploadCanvas = null;
-    let uploadCtx = null;
-    let uploadImageX = 200;
-    let uploadImageY = 225;
-    let uploadScale = 1;
-    let uploadRotation = 0;
-    let uploadMirrored = false;
-    let uploadDragging = false;
-    let uploadLastX = 0;
-    let uploadLastY = 0;
-    let uploadPinchStart = null;
-    let uploadPinchInit = {};
-    let dynamicHiddenNpcCategorySet = new Set(BASE_HIDDEN_NPC_CATEGORIES);
-
-    function escapeHTML(str) {
-      return String(str || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-
-    function setMsg(text, isError) {
-      const msg = document.getElementById('msg');
-
-      if (!msg) {
-        return;
-      }
-
-      msg.style.color = isError ? '#d44' : '#1767a0';
-      msg.textContent = text || '';
-    }
-
-    function getAlignmentText(value) {
-      return ALIGNMENT_LABELS[value] || '?';
-    }
-
-    function getAlignmentClass(value) {
-      if (value === 'white') {
-        return 'alignment-white';
-      }
-
-      if (value === 'black') {
-        return 'alignment-black';
-      }
-
-      return 'alignment-unknown';
-    }
-
-    function getCategoryText(value) {
-      const text = String(value || '').trim();
-      return text || '未分類';
-    }
-
-    function rebuildDynamicHiddenNpcCategoriesFromRows(rows) {
-      dynamicHiddenNpcCategorySet = new Set(BASE_HIDDEN_NPC_CATEGORIES);
-
-      const safeRows = Array.isArray(rows) ? rows : [];
-
-      safeRows.forEach(npc => {
-        if (!npc || !HIDDEN_CATEGORY_SOURCE_PLAYER_IDS.includes(npc.player_id)) {
-          return;
-        }
-
-        const category = getCategoryText(npc.npc_category);
-
-        if (category) {
-          dynamicHiddenNpcCategorySet.add(category);
-        }
-      });
-    }
-
-    function isHiddenNpcCategory(value) {
-      const category = getCategoryText(value);
-      return dynamicHiddenNpcCategorySet.has(category);
-    }
-
-    function hasFullPermission() {
-      return FULL_PERMISSION_PLAYER_IDS.includes(currentPlayerId);
-    }
-
-    function hasPublicPermission() {
-      return PUBLIC_PERMISSION_PLAYER_IDS.includes(currentPlayerId);
-    }
-
-    function hasHiddenPermission() {
-      return HIDDEN_PERMISSION_PLAYER_IDS.includes(currentPlayerId);
-    }
-
-    function isLeafPlayer() {
-      return currentPlayerId === LEAF_PLAYER_ID;
-    }
-
-    function getNpcListButtonConfig() {
-      if (isLeafPlayer()) {
-        return {
-          text: '孩子名冊',
-          url: LEAF_NPC_LIST_URL
-        };
-      }
-
-      return {
-        text: 'NPC一覽表',
-        url: NPC_LIST_URL
-      };
-    }
-
-    function setupNpcListButton() {
-      const button = document.getElementById('npc-list-btn');
-
-      if (!button) {
-        return;
-      }
-
-      const config = getNpcListButtonConfig();
-
-      button.textContent = config.text;
-      button.onclick = function () {
-        window.open(config.url, '_blank', 'noopener,noreferrer');
-      };
-    }
-
-    function canOperateNpc(npc) {
-      if (!currentPlayerId || !npc) {
-        return false;
-      }
-
-      if (hasFullPermission()) {
-        return true;
-      }
-
-      if (hasPublicPermission()) {
-        return !isHiddenNpcCategory(npc.npc_category);
-      }
-
-      if (hasHiddenPermission()) {
-        return isHiddenNpcCategory(npc.npc_category);
-      }
-
-      if (isHiddenNpcCategory(npc.npc_category)) {
-        return false;
-      }
-
-      return npc.player_id === currentPlayerId;
-    }
-
-    function getVisibleNpcRows(rows) {
-      const safeRows = Array.isArray(rows) ? rows : [];
-
-      if (hasFullPermission()) {
-        return safeRows.slice();
-      }
-
-      if (hasPublicPermission()) {
-        return safeRows.filter(npc => !isHiddenNpcCategory(npc.npc_category));
-      }
-
-      if (hasHiddenPermission()) {
-        return safeRows.filter(npc => isHiddenNpcCategory(npc.npc_category));
-      }
-
-      return safeRows.filter(npc => !isHiddenNpcCategory(npc.npc_category));
-    }
-
-    function compareNpcRows(a, b) {
-      const alignA = ALIGNMENT_SORT_ORDER[a.alignment] || 99;
-      const alignB = ALIGNMENT_SORT_ORDER[b.alignment] || 99;
-
-      if (alignA !== alignB) {
-        return alignA - alignB;
-      }
-
-      return String(a.name || '').localeCompare(String(b.name || ''), 'zh-Hant');
-    }
-
-    function groupNpcRows(rows) {
-      const grouped = new Map();
-
-      rows.forEach(npc => {
-        const category = getCategoryText(npc.npc_category);
-
-        if (!grouped.has(category)) {
-          grouped.set(category, []);
-        }
-
-        grouped.get(category).push(npc);
-      });
-
-      return Array.from(grouped.entries())
-        .sort((a, b) => a[0].localeCompare(b[0], 'zh-Hant'))
-        .map(([category, items]) => ({
-          category,
-          items: items.slice().sort(compareNpcRows)
-        }));
-    }
-
-    async function checkAdminAndSyncCurrentPlayer() {
-      let sessionUser = null;
-      let sessionError = null;
-
-      try {
-        const sessionResult = await client.auth.getSession();
-        sessionUser = sessionResult && sessionResult.data && sessionResult.data.session
-          ? sessionResult.data.session.user
-          : null;
-        sessionError = sessionResult ? sessionResult.error : null;
-      } catch (error) {
-        sessionError = error;
-      }
-
-      if (sessionError) {
-        alert('讀取登入狀態失敗，請重新登入');
-        localStorage.clear();
-        window.location.href = LOGIN_URL;
-        return false;
-      }
-
-      const localPlayerId = localStorage.getItem('player_id') || '';
-      const sessionPlayerId = sessionUser && sessionUser.id ? sessionUser.id : '';
-      const sessionEmail = sessionUser && sessionUser.email ? sessionUser.email : '';
-
-      const candidateIds = [];
-
-      if (localPlayerId) {
-        candidateIds.push(localPlayerId);
-      }
-
-      if (sessionPlayerId && !candidateIds.includes(sessionPlayerId)) {
-        candidateIds.push(sessionPlayerId);
-      }
-
-      if (candidateIds.length === 0 && !sessionEmail) {
-        alert('請先登入');
-        window.location.href = LOGIN_URL;
-        return false;
-      }
-
-      let playerData = null;
-      let queryError = null;
-
-      for (const playerId of candidateIds) {
-        const result = await client
-          .from('players')
-          .select('player_id,username,role,email')
-          .eq('player_id', playerId)
-          .maybeSingle();
-
-        if (result.error) {
-          queryError = result.error;
-          continue;
-        }
-
-        if (result.data) {
-          playerData = result.data;
-          break;
-        }
-      }
-
-      if (!playerData && sessionEmail) {
-        const result = await client
-          .from('players')
-          .select('player_id,username,role,email')
-          .eq('email', sessionEmail)
-          .maybeSingle();
-
-        if (result.error) {
-          queryError = result.error;
-        } else if (result.data) {
-          playerData = result.data;
-        }
-      }
-
-      if (!playerData && queryError) {
-        alert('查詢玩家權限失敗：' + queryError.message);
-        localStorage.clear();
-        window.location.href = LOGIN_URL;
-        return false;
-      }
-
-      if (!playerData) {
-        alert('查無玩家資料，請重新登入');
-        localStorage.clear();
-        window.location.href = LOGIN_URL;
-        return false;
-      }
-
-      const canEnterNpcManagePage =
-        playerData.role === 'admin' ||
-        FULL_PERMISSION_PLAYER_IDS.includes(playerData.player_id) ||
-        PUBLIC_PERMISSION_PLAYER_IDS.includes(playerData.player_id) ||
-        HIDDEN_PERMISSION_PLAYER_IDS.includes(playerData.player_id);
-
-      if (!canEnterNpcManagePage) {
-        alert('你不是管理員，無權進入 NPC 管理頁面');
-        window.location.href = LOGIN_URL;
-        return false;
-      }
-
-      currentPlayerId = playerData.player_id || '';
-      currentPlayerRole = playerData.role || '';
-
-      localStorage.setItem('player_id', playerData.player_id || '');
-      localStorage.setItem('player_role', playerData.role || '');
-      localStorage.setItem('player_username', playerData.username || '');
-
-      return true;
-    }
-
-    async function loadNpcRows() {
-      setMsg('資料載入中...');
-
-      const { data, error } = await client
-        .from('other_npcs')
-        .select('othernpc_id,player_id,name,alignment,npc_category')
-        .order('npc_category', { ascending: true })
-        .order('alignment', { ascending: true })
-        .order('name', { ascending: true });
-
-      if (error) {
-        setMsg('NPC 資料讀取失敗：' + error.message, true);
-        npcRows = [];
-        filteredNpcRows = [];
-        rebuildDynamicHiddenNpcCategoriesFromRows([]);
-        renderNpcSections();
-        return;
-      }
-
-      npcRows = data || [];
-      rebuildDynamicHiddenNpcCategoriesFromRows(npcRows);
-      applySearch();
-      setMsg('');
-    }
-
-    function applySearch() {
-      const input = document.getElementById('search-input');
-      const keyword = input ? input.value.trim().toLowerCase() : '';
-      const visibleRows = getVisibleNpcRows(npcRows);
-
-      if (!keyword) {
-        filteredNpcRows = visibleRows.slice();
-        renderNpcSections();
-        return;
-      }
-
-      filteredNpcRows = visibleRows.filter(npc => {
-        const name = String(npc.name || '').toLowerCase();
-        const category = String(npc.npc_category || '').toLowerCase();
-        const alignment = getAlignmentText(npc.alignment).toLowerCase();
-        const rawAlignment = String(npc.alignment || '').toLowerCase();
-
-        return (
-          name.includes(keyword) ||
-          category.includes(keyword) ||
-          alignment.includes(keyword) ||
-          rawAlignment.includes(keyword)
-        );
-      });
-
-      renderNpcSections();
-    }
-
-    function createButton(text, className, onClick) {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = className;
-      button.textContent = text;
-      button.onclick = onClick;
-      return button;
-    }
-
-    function renderNpcSections() {
-      const wrap = document.getElementById('npc-sections');
-
-      if (!wrap) {
-        return;
-      }
-
-      wrap.innerHTML = '';
-
-      if (!filteredNpcRows.length) {
-        const empty = document.createElement('div');
-        empty.className = 'empty-text';
-        empty.textContent = '沒有符合條件的 NPC';
-        wrap.appendChild(empty);
-        return;
-      }
-
-      const groups = groupNpcRows(filteredNpcRows);
-
-      groups.forEach(group => {
-        const section = document.createElement('section');
-        section.className = 'npc-section';
-
-        const title = document.createElement('h3');
-        title.textContent = `${group.category}（${group.items.length}）`;
-        section.appendChild(title);
-
-        const tableWrap = document.createElement('div');
-        tableWrap.className = 'table-wrap';
-
-        const table = document.createElement('table');
-
-        const thead = document.createElement('thead');
-        const headRow = document.createElement('tr');
-
-        ['名字', '陣營', '操作'].forEach(label => {
-          const th = document.createElement('th');
-          th.textContent = label;
-          headRow.appendChild(th);
-        });
-
-        thead.appendChild(headRow);
-        table.appendChild(thead);
-
-        const tbody = document.createElement('tbody');
-
-        group.items.forEach(npc => {
-          const row = document.createElement('tr');
-
-          const nameTd = document.createElement('td');
-          nameTd.className = 'npc-name';
-          nameTd.textContent = npc.name || '';
-          row.appendChild(nameTd);
-
-          const alignmentTd = document.createElement('td');
-          const alignmentSpan = document.createElement('span');
-          alignmentSpan.className = `alignment-pill ${getAlignmentClass(npc.alignment)}`;
-          alignmentSpan.textContent = getAlignmentText(npc.alignment);
-          alignmentTd.appendChild(alignmentSpan);
-          row.appendChild(alignmentTd);
-
-          const actionTd = document.createElement('td');
-          const actionCell = document.createElement('div');
-          actionCell.className = 'action-cell';
-
-          actionCell.appendChild(createButton('資料卡', 'btn btn-card', function () {
-            openNpcCard(npc);
-          }));
-
-          if (canOperateNpc(npc)) {
-            actionCell.appendChild(createButton('設定/裏設定', 'btn btn-note', function () {
-              toggleNpcNotes(npc);
-            }));
-
-            actionCell.appendChild(createButton('正面照', 'btn btn-front', function () {
-              openNpcImageUploadModal(npc, 'front');
-            }));
-
-            actionCell.appendChild(createButton('背面照', 'btn btn-back', function () {
-              openNpcImageUploadModal(npc, 'back');
-            }));
-
-            actionCell.appendChild(createButton('修改', 'btn btn-edit', function () {
-              openNpcEdit(npc);
-            }));
-          }
-
-          actionTd.appendChild(actionCell);
-          row.appendChild(actionTd);
-          tbody.appendChild(row);
-
-          if (openNoteRowId === npc.othernpc_id) {
-            const expandRow = document.createElement('tr');
-            expandRow.className = 'expand-row';
-
-            const expandTd = document.createElement('td');
-            expandTd.colSpan = 3;
-
-            const noteBox = document.createElement('div');
-            noteBox.className = 'note-box';
-            noteBox.innerHTML = openNoteHtml || '<span class="empty-text">讀取中...</span>';
-
-            expandTd.appendChild(noteBox);
-            expandRow.appendChild(expandTd);
-            tbody.appendChild(expandRow);
-          }
-        });
-
-        table.appendChild(tbody);
-        tableWrap.appendChild(table);
-        section.appendChild(tableWrap);
-        wrap.appendChild(section);
-      });
-    }
-
-    function openNpcCard(npc) {
-      const name = npc && npc.name ? npc.name : '';
-      window.open(`${NPC_CARD_BASE_URL}?npc=${encodeURIComponent(name)}`, '_blank');
-    }
-
-    function openNpcEdit(npc) {
-      if (!npc || !npc.othernpc_id) {
-        return;
-      }
-
-      if (!canOperateNpc(npc)) {
-        alert('你沒有權限修改這個 NPC');
-        return;
-      }
-
-      window.open(
-        `${NPC_EDIT_BASE_URL}?othernpc_id=${encodeURIComponent(npc.othernpc_id)}`,
-        '_blank',
-        'noopener,noreferrer'
-      );
-    }
-
-    async function toggleNpcNotes(npc) {
-      if (!npc || !npc.othernpc_id) {
-        return;
-      }
-
-      if (!canOperateNpc(npc)) {
-        alert('你沒有權限查看或修改這個 NPC 的設定');
-        return;
-      }
-
-      if (openNoteRowId === npc.othernpc_id) {
-        openNoteRowId = '';
-        openNoteHtml = '';
-        renderNpcSections();
-        return;
-      }
-
-      openNoteRowId = npc.othernpc_id;
-      openNoteHtml = '<span class="empty-text">讀取中...</span>';
-      renderNpcSections();
-
-      const { data, error } = await client
-        .from('othernpc_notes')
-        .select('content,is_public,sort_order')
-        .eq('othernpc_id', npc.othernpc_id)
-        .order('sort_order', { ascending: true });
-
-      if (error) {
-        openNoteHtml = `<span style="color:#d44;">讀取設定失敗：${escapeHTML(error.message)}</span>`;
-        renderNpcSections();
-        return;
-      }
-
-      const notes = data || [];
-      const updateUrl = `npcupdata?othernpc_id=${encodeURIComponent(npc.othernpc_id)}`;
-
-      const noteListHtml = notes.length
-        ? `
-          <ul>
-            ${
-              notes.map(note => {
-                const prefix = note.is_public ? '# ' : '? ';
-                return `<li>${prefix}${escapeHTML(note.content)}</li>`;
-              }).join('')
-            }
-          </ul>
-        `
-        : '<span class="empty-text">（無）</span>';
-
-      openNoteHtml = `
-        ${noteListHtml}
-        <div style="margin-top:1.1em;">
-          <button class="btn btn-edit" type="button" onclick="location.href='${updateUrl}'">更新</button>
+ <button style="
+      position: fixed;
+      left: 10px;
+      width: 39px;
+      z-index: 9999;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #FFF;
+    " onclick="changeBg()" id="npc-change-bg-btn" type="button">
+    切<br>換<br>卡<br>片<br>背<br>景
+  </button>
+  <button style="
+      position: fixed;
+      left: 10px;
+      width: 39px;
+      z-index: 9999;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #FFF;
+    " onclick="openNpcNameboxColorPicker()" id="npc-change-namebox-color-btn" type="button">
+    調<br>整<br>名<br>字<br>背<br>景<br>色
+  </button>
+
+  <input
+    type="color"
+    id="namebox_color_picker"
+    value="#3da2ad"
+    style="
+      position: fixed;
+      left: 58px;
+      top: 184px;
+      width: 42px;
+      height: 42px;
+      z-index: 9998;
+      opacity: 0;
+      pointer-events: none;
+    "
+  >
+
+  <input
+    type="hidden"
+    id="namebox_color"
+    value="#3da2ad"
+  >
+
+  <input
+    type="hidden"
+    id="background_image_url"
+    value="https://shierusha.github.io/school-battle/teachers/img/1.webp"
+  >
+
+  <div class="flip-card row-card" id="flipCard">
+    <div class="flip-card-front">
+      <div class="container-16-9">
+        <img class="bg-img" src="https://shierusha.github.io/school-battle/teachers/img/1.webp" alt="background">
+
+        <div class="student-id" data-key="other_npcs.npc_category"></div>
+
+        <div class="imgarea">
+          <img class="char-img front-img" data-key="othernpc_images.front_url" src="#" alt="NPC 正面立繪">
         </div>
-      `;
-
-      renderNpcSections();
-    }
-
-    function resetUploadState() {
-      uploadImage = null;
-      uploadImageX = 200;
-      uploadImageY = 225;
-      uploadScale = 1;
-      uploadRotation = 0;
-      uploadMirrored = false;
-      uploadDragging = false;
-      uploadLastX = 0;
-      uploadLastY = 0;
-      uploadPinchStart = null;
-      uploadPinchInit = {};
-
-      const fileInput = document.getElementById('image-upload-file');
-
-      if (fileInput) {
-        fileInput.value = '';
-      }
-
-      setUploadMsg('');
-      drawUploadCanvas();
-    }
-
-    function openNpcImageUploadModal(npc, imageType) {
-      if (!canOperateNpc(npc)) {
-        alert('你沒有權限修改這個 NPC');
-        return;
-      }
-
-      uploadNpc = npc;
-      uploadImageType = imageType === 'back' ? 'back' : 'front';
-
-      const title = document.getElementById('image-upload-title');
-
-      if (title) {
-        title.textContent = uploadImageType === 'front'
-          ? `上傳正面照：${npc.name || ''}`
-          : `上傳背面照：${npc.name || ''}`;
-      }
-
-      const modal = document.getElementById('image-upload-modal-bg');
-
-      if (modal) {
-        modal.style.display = 'flex';
-      }
-
-      resetUploadState();
-    }
-
-    function closeNpcImageUploadModal() {
-      const modal = document.getElementById('image-upload-modal-bg');
-
-      if (modal) {
-        modal.style.display = 'none';
-      }
-
-      uploadNpc = null;
-      uploadImageType = '';
-      resetUploadState();
-    }
-
-    function setUploadMsg(text, isError) {
-      const el = document.getElementById('image-upload-msg');
-
-      if (!el) {
-        return;
-      }
-
-      el.style.color = isError ? '#d44' : '#1767a0';
-      el.textContent = text || '';
-    }
-
-    function drawUploadCanvas() {
-      if (!uploadCtx) {
-        return;
-      }
-
-      uploadCtx.clearRect(0, 0, 400, 450);
-
-      if (!uploadImage) {
-        return;
-      }
-
-      uploadCtx.save();
-      uploadCtx.translate(uploadImageX, uploadImageY);
-      uploadCtx.rotate(uploadRotation);
-      uploadCtx.scale(uploadMirrored ? -uploadScale : uploadScale, uploadScale);
-      uploadCtx.drawImage(uploadImage, -uploadImage.width / 2, -uploadImage.height / 2);
-      uploadCtx.restore();
-    }
-
-    function getCanvasPoint(e) {
-      const rect = uploadCanvas.getBoundingClientRect();
-      const scaleX = uploadCanvas.width / rect.width;
-      const scaleY = uploadCanvas.height / rect.height;
-
-      return {
-        x: (e.clientX - rect.left) * scaleX,
-        y: (e.clientY - rect.top) * scaleY
-      };
-    }
-
-    function getTouchPoint(touch) {
-      const rect = uploadCanvas.getBoundingClientRect();
-      const scaleX = uploadCanvas.width / rect.width;
-      const scaleY = uploadCanvas.height / rect.height;
-
-      return {
-        x: (touch.clientX - rect.left) * scaleX,
-        y: (touch.clientY - rect.top) * scaleY,
-        clientX: touch.clientX,
-        clientY: touch.clientY
-      };
-    }
-
-    function bindUploadCanvasEvents() {
-      uploadCanvas = document.getElementById('image-edit-canvas');
-
-      if (!uploadCanvas) {
-        return;
-      }
-
-      uploadCtx = uploadCanvas.getContext('2d');
-
-      const fileInput = document.getElementById('image-upload-file');
-
-      if (fileInput) {
-        fileInput.onchange = function (e) {
-          const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
-
-          if (!file) {
-            return;
-          }
-
-          const reader = new FileReader();
-
-          reader.onload = function (event) {
-            uploadImage = new Image();
-
-            uploadImage.onload = function () {
-              uploadScale = Math.max(400 / uploadImage.width, 450 / uploadImage.height);
-              uploadImageX = 200;
-              uploadImageY = 225;
-              uploadRotation = 0;
-              uploadMirrored = false;
-              drawUploadCanvas();
-            };
-
-            uploadImage.src = event.target.result;
-          };
-
-          reader.readAsDataURL(file);
-        };
-      }
-
-      uploadCanvas.addEventListener('mousedown', function (e) {
-        if (!uploadImage) {
-          return;
-        }
-
-        const point = getCanvasPoint(e);
-        uploadDragging = true;
-        uploadLastX = point.x;
-        uploadLastY = point.y;
-      });
-
-      window.addEventListener('mouseup', function () {
-        uploadDragging = false;
-      });
-
-      uploadCanvas.addEventListener('mouseleave', function () {
-        uploadDragging = false;
-      });
-
-      uploadCanvas.addEventListener('mousemove', function (e) {
-        if (!uploadDragging || !uploadImage) {
-          return;
-        }
-
-        const point = getCanvasPoint(e);
-
-        uploadImageX += point.x - uploadLastX;
-        uploadImageY += point.y - uploadLastY;
-        uploadLastX = point.x;
-        uploadLastY = point.y;
-
-        drawUploadCanvas();
-      });
-
-      uploadCanvas.addEventListener('wheel', function (e) {
-        if (!uploadImage) {
-          return;
-        }
-
-        e.preventDefault();
-        uploadScale *= e.deltaY < 0 ? 1.04 : 0.96;
-        drawUploadCanvas();
-      }, { passive: false });
-
-      window.addEventListener('keydown', function (e) {
-        const modal = document.getElementById('image-upload-modal-bg');
-        const isOpen = modal && modal.style.display !== 'none';
-
-        if (!isOpen || !uploadImage) {
-          return;
-        }
-
-        if (e.key === 'a' || e.key === 'A') {
-          uploadRotation -= Math.PI / 60;
-          drawUploadCanvas();
-        }
-
-        if (e.key === 'd' || e.key === 'D') {
-          uploadRotation += Math.PI / 60;
-          drawUploadCanvas();
-        }
-      });
-
-      uploadCanvas.addEventListener('touchstart', function (e) {
-        if (!uploadImage) {
-          return;
-        }
-
-        e.preventDefault();
-
-        if (e.touches.length === 1) {
-          const point = getTouchPoint(e.touches[0]);
-          uploadDragging = true;
-          uploadLastX = point.x;
-          uploadLastY = point.y;
-        }
-
-        if (e.touches.length === 2) {
-          const p1 = getTouchPoint(e.touches[0]);
-          const p2 = getTouchPoint(e.touches[1]);
-
-          uploadPinchStart = [p1, p2];
-
-          uploadPinchInit = {
-            scale: uploadScale,
-            rotation: uploadRotation,
-            x: uploadImageX,
-            y: uploadImageY
-          };
-        }
-      }, { passive: false });
-
-      uploadCanvas.addEventListener('touchend', function (e) {
-        e.preventDefault();
-
-        uploadDragging = false;
-        uploadPinchStart = null;
-      }, { passive: false });
-
-      uploadCanvas.addEventListener('touchmove', function (e) {
-        if (!uploadImage) {
-          return;
-        }
-
-        e.preventDefault();
-
-        if (e.touches.length === 1 && uploadDragging) {
-          const point = getTouchPoint(e.touches[0]);
-
-          uploadImageX += point.x - uploadLastX;
-          uploadImageY += point.y - uploadLastY;
-          uploadLastX = point.x;
-          uploadLastY = point.y;
-
-          drawUploadCanvas();
-        }
-
-        if (e.touches.length === 2 && uploadPinchStart) {
-          const nowOne = getTouchPoint(e.touches[0]);
-          const nowTwo = getTouchPoint(e.touches[1]);
-          const startOne = uploadPinchStart[0];
-          const startTwo = uploadPinchStart[1];
-
-          const distStart = Math.hypot(startOne.clientX - startTwo.clientX, startOne.clientY - startTwo.clientY);
-          const distNow = Math.hypot(nowOne.clientX - nowTwo.clientX, nowOne.clientY - nowTwo.clientY);
-
-          if (distStart > 0) {
-            uploadScale = uploadPinchInit.scale * (distNow / distStart);
-          }
-
-          const angleStart = Math.atan2(startTwo.clientY - startOne.clientY, startTwo.clientX - startOne.clientX);
-          const angleNow = Math.atan2(nowTwo.clientY - nowOne.clientY, nowTwo.clientX - nowOne.clientX);
-
-          uploadRotation = uploadPinchInit.rotation + (angleNow - angleStart);
-
-          const centerStartX = (startOne.x + startTwo.x) / 2;
-          const centerStartY = (startOne.y + startTwo.y) / 2;
-          const centerNowX = (nowOne.x + nowTwo.x) / 2;
-          const centerNowY = (nowOne.y + nowTwo.y) / 2;
-
-          uploadImageX = uploadPinchInit.x + (centerNowX - centerStartX);
-          uploadImageY = uploadPinchInit.y + (centerNowY - centerStartY);
-
-          drawUploadCanvas();
-        }
-      }, { passive: false });
-    }
-
-    function toggleUploadMirror() {
-      uploadMirrored = !uploadMirrored;
-      drawUploadCanvas();
-    }
-
-    function toStoragePathFromPublicUrl(url) {
-      if (!url) {
-        return '';
-      }
-
-      const marker = `/storage/v1/object/public/${STORAGE_BUCKET}/`;
-      const index = url.indexOf(marker);
-
-      if (index >= 0) {
-        return decodeURIComponent(url.slice(index + marker.length).split('?')[0]);
-      }
-
-      if (!url.includes('://')) {
-        return url.replace(/^\/+/, '').split('?')[0];
-      }
-
-      return '';
-    }
-
-    async function submitNpcCanvasImage() {
-      if (!uploadNpc || !uploadNpc.othernpc_id || !uploadImageType) {
-        setUploadMsg('找不到 NPC 資料', true);
-        return;
-      }
-
-      if (!canOperateNpc(uploadNpc)) {
-        setUploadMsg('你沒有權限修改這個 NPC', true);
-        return;
-      }
-
-      if (!uploadImage) {
-        setUploadMsg('請先選擇圖片', true);
-        return;
-      }
-
-      setUploadMsg('上傳中...');
-
-      uploadCanvas.toBlob(async function (blob) {
-        if (!blob) {
-          setUploadMsg('圖片產生失敗', true);
-          return;
-        }
-
-        try {
-          const othernpcId = uploadNpc.othernpc_id;
-          const imageType = uploadImageType;
-          const filePath = `othernpc-images/${othernpcId}/${imageType}.png`;
-
-          const { data: oldImages } = await client
-            .from('othernpc_images')
-            .select('image_url')
-            .eq('othernpc_id', othernpcId)
-            .eq('image_type', imageType);
-
-          const oldPaths = (oldImages || [])
-            .map(row => toStoragePathFromPublicUrl(row.image_url))
-            .filter(Boolean);
-
-          if (oldPaths.length) {
-            await client.storage.from(STORAGE_BUCKET).remove(oldPaths);
-          }
-
-          await client.storage.from(STORAGE_BUCKET).remove([filePath]);
-
-          const { error: uploadError } = await client.storage
-            .from(STORAGE_BUCKET)
-            .upload(filePath, blob, {
-              upsert: true,
-              contentType: 'image/png'
-            });
-
-          if (uploadError) {
-            throw uploadError;
-          }
-
-          const { data: publicData } = client.storage.from(STORAGE_BUCKET).getPublicUrl(filePath);
-          const publicUrl = publicData && publicData.publicUrl ? publicData.publicUrl : '';
-
-          await client
-            .from('othernpc_images')
-            .delete()
-            .eq('othernpc_id', othernpcId)
-            .eq('image_type', imageType);
-
-          const { error: insertError } = await client
-            .from('othernpc_images')
-            .insert([{
-              othernpc_id: othernpcId,
-              image_type: imageType,
-              image_url: publicUrl,
-              uploaded_by: currentPlayerId || null
-            }]);
-
-          if (insertError) {
-            throw insertError;
-          }
-
-          setUploadMsg('上傳完成！');
-
-          setTimeout(function () {
-            closeNpcImageUploadModal();
-            loadNpcRows();
-          }, 650);
-        } catch (error) {
-          console.error(error);
-          setUploadMsg('上傳失敗：' + (error.message || error), true);
-        }
-      }, 'image/png');
-    }
-
-    function bindPageEvents() {
-      const searchInput = document.getElementById('search-input');
-      const closeButton = document.getElementById('image-upload-close-btn');
-      const cancelButton = document.getElementById('image-cancel-btn');
-      const mirrorButton = document.getElementById('image-mirror-btn');
-      const submitButton = document.getElementById('image-submit-btn');
-      const modal = document.getElementById('image-upload-modal-bg');
-
-      if (searchInput) {
-        searchInput.addEventListener('input', applySearch);
-      }
-
-      if (closeButton) {
-        closeButton.addEventListener('click', closeNpcImageUploadModal);
-      }
-
-      if (cancelButton) {
-        cancelButton.addEventListener('click', closeNpcImageUploadModal);
-      }
-
-      if (mirrorButton) {
-        mirrorButton.addEventListener('click', toggleUploadMirror);
-      }
-
-      if (submitButton) {
-        submitButton.addEventListener('click', submitNpcCanvasImage);
-      }
-
-      if (modal) {
-        modal.addEventListener('click', function (e) {
-          if (e.target === modal) {
-            closeNpcImageUploadModal();
-          }
-        });
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', async function () {
-      bindPageEvents();
-      bindUploadCanvasEvents();
-
-      const adminReady = await checkAdminAndSyncCurrentPlayer();
-
-      if (!adminReady) {
-        return;
-      }
-
-      setupNpcListButton();
-      await loadNpcRows();
-    });
-
-    window.openNpcCard = openNpcCard;
-    window.openNpcEdit = openNpcEdit;
-    window.toggleNpcNotes = toggleNpcNotes;
-    window.openNpcImageUploadModal = openNpcImageUploadModal;
-    window.closeNpcImageUploadModal = closeNpcImageUploadModal;
-    window.submitNpcCanvasImage = submitNpcCanvasImage;
-    window.toggleUploadMirror = toggleUploadMirror;
-  </script>
+
+        <div class="bigname-box">
+          <div class="name-box bigname" data-key="other_npcs.name"></div>
+        </div>
+
+        <div class="littlename-box">
+          <div class="name-box littlename" data-key="other_npcs.nickname"></div>
+        </div>
+
+        <div class="row">
+          <div class="row-1" style="left: 0;">
+            <div class="info-box" style="height:7%;">
+              <span class="info-label">陣營</span>
+              <span class="info-value" data-key="other_npcs.alignment"></span>
+            </div>
+
+            <div class="info-box" style="height:7%;">
+              <span class="info-label">種族</span>
+              <span class="info-value" data-key="other_npcs.race"></span>
+            </div>
+
+            <div class="info-row" style="gap:2%;height:7%;">
+              <div class="info-box" style="width:49%;">
+                <span class="info-label">年齡</span>
+                <span class="info-value" data-key="other_npcs.age"></span>
+              </div>
+              <div class="info-box" style="width:49%;">
+                <span class="info-label">性別</span>
+                <span class="info-value" data-key="other_npcs.gender"></span>
+              </div>
+            </div>
+
+            <div class="info-box" style="height:15%;">
+              <span class="info-label">個性</span>
+              <span class="info-value" data-key="other_npcs.personality" style="margin-top: 0.35em;"></span>
+              <button class="show-more-btn" style="display:none;">...MORE</button>
+            </div>
+
+            <div class="info-box" style="height:7%;">
+              <span class="info-label">喜歡</span>
+              <span class="info-value" data-key="other_npcs.likes"></span>
+              <button class="show-more-btn" style="display:none;">...MORE</button>
+            </div>
+
+            <div class="info-box" style="height:7%;">
+              <span class="info-label">討厭</span>
+              <span class="info-value" data-key="other_npcs.hate"></span>
+              <button class="show-more-btn" style="display:none;">...MORE</button>
+            </div>
+
+            <div class="info-box" style="height:7%;border-radius:5px 5px 0 0;">
+              <span class="info-label">角色設定</span>
+              <span style="color: #495079; font-weight: 700; letter-spacing: 0.05em; padding-left: 0.3em; align-self: center;">裏設定</span>
+            </div>
+
+            <div class="info-box" style="height:25%;margin-top:-2.8%;border-radius:0 0 5px 5px;">
+              <span class="info-value" data-key="othernpc_notes.content" style="margin-top: 0.35em;"></span>
+              <button class="show-more-btn" data-title="角色設定/裏設定">...MORE</button>
+            </div>
+          </div>
+
+          <div class="row-1" style="right:0;">
+            <div class="info-row" style="gap:2%; height:7%;">
+              <div class="info-box" style="width:100%;">
+                <span class="info-label">身高</span>
+                <span class="info-value" data-key="other_npcs.height"></span>
+              </div>
+            </div>
+
+            <div class="info-row" style="gap:2%; height:7%;">
+              <div class="info-box" style="width:100%;">
+                <span class="info-label">體重</span>
+                <span class="info-value" data-key="other_npcs.weight"></span>
+              </div>
+            </div>
+
+            <div class="info-box" style="height:7%;border-radius:5px 5px 0 0;">
+              <span class="info-label">背景故事</span>
+              <span style="color: #495079; font-weight: 700; letter-spacing: 0.05em; padding-left: 0.3em; align-self: center;">備註</span>
+            </div>
+
+            <div class="info-box" style="height:71%;margin-top:-2.8%;border-radius:0 0 5px 0;">
+              <span class="info-value" data-key="other_npcs.background" style="margin-top: 0.35em;"></span>
+              <button class="show-more-btn" data-title="背景故事/備註">...MORE</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flip-card-back">
+      <div class="container-16-9">
+        <img class="bg-img" src="https://shierusha.github.io/school-battle/teachers/img/1.webp" alt="background">
+
+        <div
+          class="skill-diamond"
+          data-key="othernpc_skills.extra_skills"
+          title="顯示額外技能"
+          tabindex="0"
+          style="cursor:pointer"
+          value=""
+        ></div>
+
+        <div class="student-id" data-key="other_npcs.npc_category"></div>
+
+        <div class="imgarea">
+          <img class="char-img back-img" data-key="othernpc_images.back_url" src="#" alt="NPC 背面立繪">
+        </div>
+
+        <div class="bigname-box">
+          <div class="name-box bigname" data-key="other_npcs.name"></div>
+        </div>
+
+        <div class="littlename-box">
+          <div class="name-box littlename" data-key="other_npcs.nickname"></div>
+        </div>
+
+        <div class="row">
+          <div class="row-1" style="width: 100%;">
+            <div class="info-box" style="height:7%;">
+              <span class="info-label">職業</span>
+              <span class="info-value" data-key="other_npcs.occupation_type"></span>
+            </div>
+
+            <div class="info-row" style="height:7%;">
+              <div class="info-box" style="width:49.5%;">
+                <span class="info-label">屬性</span>
+                <span class="info-value" data-key="other_npcs.element"></span>
+              </div>
+              <div class="info-box" style="width:49.5%;">
+                <span class="info-label">屬性弱點</span>
+                <span class="info-value" data-key="element_weakness.element"></span>
+              </div>
+            </div>
+
+            <div class="info-row" style="height:7%;">
+              <div class="info-box" style="width:49.5%;">
+                <span class="info-label">定位</span>
+                <span class="info-value" data-key="other_npcs.preferred_role"></span>
+              </div>
+              <div class="info-box" style="width:49.5%;">
+                <span class="info-label">起始站位</span>
+                <span class="info-value" data-key="other_npcs.starting_position"></span>
+              </div>
+            </div>
+
+            <div class="info-row" style="gap:0.3%; height:7%;">
+              <div class="info-box" style="width:43.4%; border-radius: 5px 5px 0 0;">
+                <span class="info-label">技能</span>
+                <span class="info-value" data-key="othernpc_skills.1.skill_name"></span>
+              </div>
+              <div class="info-box" style="width:14%; border-radius: 5px 5px 0 0;">
+                <span class="info-label">CD</span>
+                <span class="info-value" data-key="othernpc_skills.1.cd"></span>
+              </div>
+              <div class="info-box" style="width:42%; border-radius: 5px 5px 0 0;">
+                <span class="info-label">效果</span>
+                <span class="info-value" data-key="othernpc_skills.1.max_targets"></span>
+                <span class="info-value" data-key="othernpc_skills.1.range"></span>
+              </div>
+            </div>
+
+            <div class="info-row" style="gap:0.3%;height:27%; margin-top:-1.38%;">
+              <div class="info-box" style="width:57.7%;border-radius:0 0 0 5px;">
+                <span class="info-label">技能<br>描述</span>
+                <span class="info-value" data-key="othernpc_skills.1.description"></span>
+                <button class="show-more-btn" data-title="技能描述">...MORE</button>
+              </div>
+              <div class="info-box" style="width:42%;border-radius:0 0 5px 0;">
+                <span class="info-value" data-key="othernpc_skills.1.effectsAndDebuffs"></span>
+                <button class="show-more-btn" style="display:none;">...MORE</button>
+              </div>
+            </div>
+
+            <div class="info-row" style="gap:0.3%; height:7%;">
+              <div class="info-box" style="width:43.4%; border-radius: 5px 5px 0 0;">
+                <span class="info-label">技能</span>
+                <span class="info-value" data-key="othernpc_skills.2.skill_name"></span>
+              </div>
+              <div class="info-box" style="width:14%; border-radius: 5px 5px 0 0;">
+                <span class="info-label">CD</span>
+                <span class="info-value" data-key="othernpc_skills.2.cd"></span>
+              </div>
+              <div class="info-box" style="width:42%; border-radius: 5px 5px 0 0;">
+                <span class="info-label">效果</span>
+                <span class="info-value" data-key="othernpc_skills.2.max_targets"></span>
+                <span class="info-value" data-key="othernpc_skills.2.range"></span>
+              </div>
+            </div>
+
+            <div class="info-row" style="gap:0.3%;height:27%; margin-top:-1.38%;">
+              <div class="info-box" style="width:57.7%;border-radius:0 0 0 5px;">
+                <span class="info-label">技能<br>描述</span>
+                <span class="info-value" data-key="othernpc_skills.2.description"></span>
+                <button class="show-more-btn" data-title="技能描述">...MORE</button>
+              </div>
+              <div class="info-box" style="width:42%;border-radius:0 0 5px 0;">
+                <div class="info-value-group">
+                  <span class="info-value" data-key="othernpc_skills.2.effectsAndDebuffs"></span>
+                </div>
+                <button class="show-more-btn" style="display:none;">...MORE</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="info-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header" id="info-modal-title">標題</div>
+      <div class="modal-body" id="info-modal-body"></div>
+    </div>
+  </div>
+
+  <div class="center">
+    <h2>謝爾夏 NPC 建立系統</h2>
+
+    <div class="steps">
+      <div class="step" id="step-1">1</div>
+      <div class="step" id="step-2">2</div>
+      <div class="step" id="step-3">3</div>
+      <div class="step" id="step-4">4</div>
+      <div class="step" id="step-5">5</div>
+      <div class="step" id="step-6">6</div>
+      <div class="step" id="step-7">7</div>
+      <div class="step" id="step-8">8</div>
+    </div>
+
+    <form id="form-step-1" class="form-page active">
+      <label for="name">名稱<span style="color:#e33">*</span></label>
+      <input type="text" id="name" maxlength="20" required placeholder="請輸入顯示名稱">
+
+      <label for="nickname">稱謂</label>
+      <input type="text" id="nickname" maxlength="20" placeholder="謝爾嚇第一行、最省會第二行">
+
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:0.7em;">
+        <label for="npc_category" style="margin:0;">網站顯示分類</label>
+
+        <button
+          type="button"
+          onclick="window.open('https://shierusha.github.io/library/lib/allicd', '_blank', 'noopener,noreferrer')"
+          style="
+            width: auto;
+            margin: 0;
+            padding: 0.35em 0.75em;
+            font-size: 0.9em;
+            white-space: nowrap;
+            cursor: pointer;
+          "
+        >
+          參考謝爾夏證書頁面分類方式
+        </button>
+      </div>
+
+      <input
+        type="text"
+        id="npc_category"
+        maxlength="30"
+        placeholder="罪審會、貝利斯、怪物 "
+      >
+
+      <div class="nav-btns">
+<button class="pl" type="button" onclick="location.href='https://shierusha.github.io/create-student/player'">返回</button>
+        <button type="button" id="btn-step-1">下一步</button>
+      </div>
+    </form>
+
+    <form id="form-step-2" class="form-page">
+      <div id="warn-2" class="warn" style="display:none;"></div>
+
+      <label for="alignment">陣營</label>
+      <select id="alignment">
+        <option value="">？</option>
+        <option value="white">白</option>
+        <option value="black">黑</option>
+      </select>
+
+      <label for="gender">性別</label>
+      <input type="text" id="gender" maxlength="30" placeholder="可自由輸入">
+
+      <label for="age">年齡</label>
+      <input type="text" id="age" maxlength="30" placeholder="可自由輸入，例如：大約100歲">
+
+      <label for="height">身高</label>
+      <input type="text" id="height" maxlength="30" placeholder="可自由輸入">
+
+      <label for="weight">體重</label>
+      <input type="text" id="weight" maxlength="30" placeholder="可自由輸入">
+
+      <label for="race">種族</label>
+      <input type="text" id="race" maxlength="30" placeholder="請輸入種族">
+
+      <div class="nav-btns">
+        <button type="button" id="back-2">上一步</button>
+        <button type="button" id="btn-step-2">下一步</button>
+      </div>
+    </form>
+
+    <form id="form-step-3" class="form-page">
+      <label for="personality">個性</label>
+      <textarea id="personality" rows="2" placeholder="請輸入個性"></textarea>
+
+      <label for="likes">喜歡</label>
+      <textarea id="likes" rows="2" placeholder="請輸入喜歡的事物"></textarea>
+
+      <label for="hate">討厭</label>
+      <textarea id="hate" rows="2" placeholder="請輸入討厭的事物"></textarea>
+
+      <div class="nav-btns">
+        <button type="button" id="back-3">上一步</button>
+        <button type="button" id="btn-step-3">下一步</button>
+      </div>
+    </form>
+
+    <form id="form-step-4" class="form-page">
+      <label for="background">背景故事</label>
+      <textarea id="background" rows="3" placeholder="請輸入 NPC 背景故事"></textarea>
+
+      <div class="nav-btns">
+        <button type="button" id="back-4">上一步</button>
+        <button type="button" id="btn-step-4">下一步</button>
+      </div>
+    </form>
+
+   <form id="form-step-5" class="form-page">
+  <h3>NPC能力設定</h3>
+
+  <div class="npc-cc-grid">
+    <div class="npc-cc-field">
+      <label for="attack_cc">攻擊CC</label>
+      <input
+        type="number"
+        id="attack_cc"
+        min="0"
+        step="1"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        placeholder="請輸入攻擊CC"
+      >
+    </div>
+
+    <div class="npc-cc-field">
+      <label for="dodge_cc">閃避CC</label>
+      <input
+        type="number"
+        id="dodge_cc"
+        min="0"
+        step="1"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        placeholder="請輸入閃避CC"
+      >
+    </div>
+
+    <div class="npc-cc-field">
+      <label for="cover_cc">掩護CC</label>
+      <input
+        type="number"
+        id="cover_cc"
+        min="0"
+        step="1"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        placeholder="請輸入掩護CC"
+      >
+    </div>
+
+    <div class="npc-cc-field">
+      <label for="take_cc">擋刀CC</label>
+      <input
+        type="number"
+        id="take_cc"
+        min="0"
+        step="1"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        placeholder="請輸入擋刀CC"
+      >
+    </div>
+  </div>
+
+  <h3>NPC 設定/裏設定</h3>
+  <p class="npc-inline-help">
+    可多條，可設定是否顯示在卡片上。
+  </p>
+     <div class="npc-skill-note">
+    請自行在設定新增角色CC<br>
+    例：<br>
+    本角色的能力為<br>
+    攻擊CC 70　　掩護CC 45<br>
+    閃避CC 70　　擋刀CC 20
+  </div>
+
+  <div id="note-list"></div>
+
+  <button type="button" id="add-note-btn">新增設定</button>
+
+  <div class="nav-btns">
+    <button type="button" id="back-5">上一步</button>
+    <button type="button" id="btn-step-5">下一步</button>
+  </div>
+</form>
+
+    <form id="form-step-6" class="form-page">
+      <label for="element">屬性</label>
+
+      <div id="multi-element-toggle" style="margin-bottom: 0.5em;">
+        <label>
+          <input type="checkbox" id="enable-multi-element">
+          多屬性
+        </label>
+      </div>
+
+      <div id="element-single-select">
+        <select id="element">
+          <option value="">無</option>
+          <option value="fire">火</option>
+          <option value="water">水</option>
+          <option value="ice">冰</option>
+          <option value="wind">風</option>
+          <option value="earth">土</option>
+          <option value="thunder">雷</option>
+          <option value="dark">暗</option>
+          <option value="light">光</option>
+        </select>
+      </div>
+
+      <div id="element-multi-select" style="display:none;">
+        <div class="element-options">
+          <label><input type="checkbox" class="element-multi-checkbox" value="fire"> 火</label>
+          <label><input type="checkbox" class="element-multi-checkbox" value="water"> 水</label>
+          <label><input type="checkbox" class="element-multi-checkbox" value="ice"> 冰</label>
+          <label><input type="checkbox" class="element-multi-checkbox" value="wind"> 風</label>
+          <label><input type="checkbox" class="element-multi-checkbox" value="earth"> 土</label>
+          <label><input type="checkbox" class="element-multi-checkbox" value="thunder"> 雷</label>
+          <label><input type="checkbox" class="element-multi-checkbox" value="dark"> 暗</label>
+          <label><input type="checkbox" class="element-multi-checkbox" value="light"> 光</label>
+        </div>
+      </div>
+
+      <label for="weakness_id">屬性弱點</label>
+      <select id="weakness_id">
+        <option value="">無</option>
+      </select>
+
+      <label for="preferred_role">定位</label>
+      <select id="preferred_role">
+        <option value="">未設定</option>
+        <option value="melee">近戰攻擊手</option>
+        <option value="ranger">遠攻攻擊手</option>
+        <option value="balance">普通攻擊手</option>
+      </select>
+
+      <label for="starting_position">起始站位</label>
+      <select id="starting_position">
+        <option value="">開戰時決定</option>
+        <option value="close">近戰區</option>
+        <option value="far">遠攻區</option>
+      </select>
+
+      <div class="nav-btns">
+        <button type="button" id="back-6">上一步</button>
+        <button type="button" id="btn-step-6">下一步</button>
+      </div>
+    </form>
+
+    <form id="form-step-7" class="form-page">
+      <div id="warn-7" class="warn" style="display:none;"></div>
+
+      <label>
+        請選擇職業
+        <span style="color:#888;">可複選，不限制數量</span>
+      </label>
+
+      <div class="job-grid" id="job-grid">
+        <div class="job-btn" data-job="attack">攻擊手</div>
+        <div class="job-btn" data-job="tank">坦克</div>
+        <div class="job-btn" data-job="buffer">增益手</div>
+        <div class="job-btn" data-job="jammer">妨礙手</div>
+        <div class="job-btn" data-job="healer">補師</div>
+      </div>
+
+      <div class="nav-btns">
+        <button type="button" id="back-7">上一步</button>
+        <button type="button" id="btn-step-7">下一步</button>
+      </div>
+    </form>
+
+    <form id="form-step-8" class="form-page">
+      <div class="skills-section">
+
+        <div class="skills-container"></div>
+
+        <div class="admin-skill-btn-block" style="margin-top:2em; text-align:center;">
+          <button type="button" id="admin-add-skill-btn">新增技能</button>
+        </div>
+
+        <div class="nav-btns">
+          <button type="button" id="back-8">上一步</button>
+          <button type="submit" id="submit-8">送出</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <script src="assets/js/npc-ap.js"></script>
+  <script src="assets/js/npc-main.js"></script>
+  <script src="assets/js/npc-set-8.js"></script>
+  <script src="assets/js/npc-submit.js"></script>
+
+
 </body>
 </html>
